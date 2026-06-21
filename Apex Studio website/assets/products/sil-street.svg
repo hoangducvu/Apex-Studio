@@ -1,0 +1,62 @@
+<svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+
+  <defs>
+    <radialGradient id="bg-ss" cx="50%" cy="34%" r="80%">
+      <stop offset="0%" stop-color="#2c2c30"/>
+      <stop offset="42%" stop-color="#161618"/>
+      <stop offset="100%" stop-color="#070708"/>
+    </radialGradient>
+    <radialGradient id="spot-ss" cx="50%" cy="22%" r="42%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="chrome-ss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="20%" stop-color="#d6d9dd"/>
+      <stop offset="40%" stop-color="#83868c"/>
+      <stop offset="51%" stop-color="#42444a"/>
+      <stop offset="62%" stop-color="#a3a6ac"/>
+      <stop offset="80%" stop-color="#eef0f3"/>
+      <stop offset="100%" stop-color="#75777c"/>
+    </linearGradient>
+    <linearGradient id="rim-ss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="lens-ss" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#42474f"/>
+      <stop offset="44%" stop-color="#16181c"/>
+      <stop offset="100%" stop-color="#040405"/>
+    </linearGradient>
+    <linearGradient id="sheen-ss" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="32%" stop-color="#ffffff" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fade-ss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0a0b" stop-opacity="0"/>
+      <stop offset="78%" stop-color="#0a0a0b" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="#0a0a0b" stop-opacity="1"/>
+    </linearGradient>
+    <filter id="soft-ss" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="11"/></filter>
+  </defs>
+  <g transform="translate(500,300) scale(1.1) translate(-500,-500)" opacity="0.9"><path d="M468,420 Q500,386 532,420" fill="none" stroke="url(#chrome-ss)" stroke-width="15" stroke-linecap="round"/>
+    <clipPath id="clip-ss-0"><path d="M216,402 H448 Q482,402 482,436 V564 Q482,598 448,598 H216 Q182,598 182,564 V436 Q182,402 216,402 Z"/></clipPath>
+    <path d="M216,402 H448 Q482,402 482,436 V564 Q482,598 448,598 H216 Q182,598 182,564 V436 Q182,402 216,402 Z" fill="url(#lens-ss)"/>
+    <g clip-path="url(#clip-ss-0)">
+      <ellipse cx="0" cy="0" rx="300" ry="150" fill="#ffffff" opacity="0.13" transform="translate(330,330) rotate(-22)"/>
+      <ellipse cx="0" cy="0" rx="120" ry="46" fill="#ffffff" opacity="0.16" transform="translate(420,560) rotate(-22)"/>
+      <rect x="0" y="0" width="1000" height="1000" fill="url(#sheen-ss)"/>
+    </g>
+    <path d="M216,402 H448 Q482,402 482,436 V564 Q482,598 448,598 H216 Q182,598 182,564 V436 Q182,402 216,402 Z" fill="none" stroke="url(#chrome-ss)" stroke-width="14"/>
+    <path d="M216,402 H448 Q482,402 482,436 V564 Q482,598 448,598 H216 Q182,598 182,564 V436 Q182,402 216,402 Z" fill="none" stroke="#000000" stroke-opacity="0.4" stroke-width="2.5"/>
+    <clipPath id="clip-ss-1"><path d="M552,402 H784 Q818,402 818,436 V564 Q818,598 784,598 H552 Q518,598 518,564 V436 Q518,402 552,402 Z"/></clipPath>
+    <path d="M552,402 H784 Q818,402 818,436 V564 Q818,598 784,598 H552 Q518,598 518,564 V436 Q518,402 552,402 Z" fill="url(#lens-ss)"/>
+    <g clip-path="url(#clip-ss-1)">
+      <ellipse cx="0" cy="0" rx="300" ry="150" fill="#ffffff" opacity="0.13" transform="translate(330,330) rotate(-22)"/>
+      <ellipse cx="0" cy="0" rx="120" ry="46" fill="#ffffff" opacity="0.16" transform="translate(420,560) rotate(-22)"/>
+      <rect x="0" y="0" width="1000" height="1000" fill="url(#sheen-ss)"/>
+    </g>
+    <path d="M552,402 H784 Q818,402 818,436 V564 Q818,598 784,598 H552 Q518,598 518,564 V436 Q518,402 552,402 Z" fill="none" stroke="url(#chrome-ss)" stroke-width="14"/>
+    <path d="M552,402 H784 Q818,402 818,436 V564 Q818,598 784,598 H552 Q518,598 518,564 V436 Q518,402 552,402 Z" fill="none" stroke="#000000" stroke-opacity="0.4" stroke-width="2.5"/><path d="M190,428 Q150,398 120,362" fill="none" stroke="url(#chrome-ss)" stroke-width="16" stroke-linecap="round"/><path d="M810,428 Q850,398 880,362" fill="none" stroke="url(#chrome-ss)" stroke-width="16" stroke-linecap="round"/></g>
+</svg>

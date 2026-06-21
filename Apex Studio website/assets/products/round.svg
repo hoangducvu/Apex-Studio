@@ -1,0 +1,85 @@
+<svg viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="round sunglasses">
+
+  <defs>
+    <radialGradient id="bg-round" cx="50%" cy="34%" r="80%">
+      <stop offset="0%" stop-color="#2c2c30"/>
+      <stop offset="42%" stop-color="#161618"/>
+      <stop offset="100%" stop-color="#070708"/>
+    </radialGradient>
+    <radialGradient id="spot-round" cx="50%" cy="22%" r="42%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="chrome-round" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="20%" stop-color="#d6d9dd"/>
+      <stop offset="40%" stop-color="#83868c"/>
+      <stop offset="51%" stop-color="#42444a"/>
+      <stop offset="62%" stop-color="#a3a6ac"/>
+      <stop offset="80%" stop-color="#eef0f3"/>
+      <stop offset="100%" stop-color="#75777c"/>
+    </linearGradient>
+    <linearGradient id="rim-round" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="lens-round" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#42474f"/>
+      <stop offset="44%" stop-color="#16181c"/>
+      <stop offset="100%" stop-color="#040405"/>
+    </linearGradient>
+    <linearGradient id="sheen-round" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="32%" stop-color="#ffffff" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fade-round" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0a0b" stop-opacity="0"/>
+      <stop offset="78%" stop-color="#0a0a0b" stop-opacity="0.92"/>
+      <stop offset="100%" stop-color="#0a0a0b" stop-opacity="1"/>
+    </linearGradient>
+    <filter id="soft-round" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="11"/></filter>
+  </defs>
+  <rect width="1000" height="1000" fill="url(#bg-round)"/>
+  <rect width="1000" height="1000" fill="url(#spot-round)"/>
+  <ellipse cx="500" cy="738" rx="360" ry="34" fill="#000" opacity="0.6" filter="url(#soft-round)"/>
+  <g transform="translate(500,470) scale(1.2) translate(-500,-500)"><path d="M452,384 Q500,350 548,384" fill="none" stroke="url(#chrome-round)" stroke-width="15" stroke-linecap="round"/>
+    <clipPath id="clip-round-0"><path d="M332,366 H332 Q466,366 466,500 V500 Q466,634 332,634 H332 Q198,634 198,500 V500 Q198,366 332,366 Z"/></clipPath>
+    <path d="M332,366 H332 Q466,366 466,500 V500 Q466,634 332,634 H332 Q198,634 198,500 V500 Q198,366 332,366 Z" fill="url(#lens-round)"/>
+    <g clip-path="url(#clip-round-0)">
+      <ellipse cx="0" cy="0" rx="300" ry="150" fill="#ffffff" opacity="0.13" transform="translate(330,330) rotate(-22)"/>
+      <ellipse cx="0" cy="0" rx="120" ry="46" fill="#ffffff" opacity="0.16" transform="translate(420,560) rotate(-22)"/>
+      <rect x="0" y="0" width="1000" height="1000" fill="url(#sheen-round)"/>
+    </g>
+    <path d="M332,366 H332 Q466,366 466,500 V500 Q466,634 332,634 H332 Q198,634 198,500 V500 Q198,366 332,366 Z" fill="none" stroke="url(#chrome-round)" stroke-width="14"/>
+    <path d="M332,366 H332 Q466,366 466,500 V500 Q466,634 332,634 H332 Q198,634 198,500 V500 Q198,366 332,366 Z" fill="none" stroke="#000000" stroke-opacity="0.4" stroke-width="2.5"/>
+    <clipPath id="clip-round-1"><path d="M668,366 H668 Q802,366 802,500 V500 Q802,634 668,634 H668 Q534,634 534,500 V500 Q534,366 668,366 Z"/></clipPath>
+    <path d="M668,366 H668 Q802,366 802,500 V500 Q802,634 668,634 H668 Q534,634 534,500 V500 Q534,366 668,366 Z" fill="url(#lens-round)"/>
+    <g clip-path="url(#clip-round-1)">
+      <ellipse cx="0" cy="0" rx="300" ry="150" fill="#ffffff" opacity="0.13" transform="translate(330,330) rotate(-22)"/>
+      <ellipse cx="0" cy="0" rx="120" ry="46" fill="#ffffff" opacity="0.16" transform="translate(420,560) rotate(-22)"/>
+      <rect x="0" y="0" width="1000" height="1000" fill="url(#sheen-round)"/>
+    </g>
+    <path d="M668,366 H668 Q802,366 802,500 V500 Q802,634 668,634 H668 Q534,634 534,500 V500 Q534,366 668,366 Z" fill="none" stroke="url(#chrome-round)" stroke-width="14"/>
+    <path d="M668,366 H668 Q802,366 802,500 V500 Q802,634 668,634 H668 Q534,634 534,500 V500 Q534,366 668,366 Z" fill="none" stroke="#000000" stroke-opacity="0.4" stroke-width="2.5"/><path d="M206,392 Q150,362 120,326" fill="none" stroke="url(#chrome-round)" stroke-width="16" stroke-linecap="round"/><path d="M794,392 Q850,362 880,326" fill="none" stroke="url(#chrome-round)" stroke-width="16" stroke-linecap="round"/></g>
+  <g transform="translate(0,1456) scale(1,-1)" opacity="0.16"><g transform="translate(500,470) scale(1.2) translate(-500,-500)"><path d="M452,384 Q500,350 548,384" fill="none" stroke="url(#chrome-round)" stroke-width="15" stroke-linecap="round"/>
+    <clipPath id="clip-round-0"><path d="M332,366 H332 Q466,366 466,500 V500 Q466,634 332,634 H332 Q198,634 198,500 V500 Q198,366 332,366 Z"/></clipPath>
+    <path d="M332,366 H332 Q466,366 466,500 V500 Q466,634 332,634 H332 Q198,634 198,500 V500 Q198,366 332,366 Z" fill="url(#lens-round)"/>
+    <g clip-path="url(#clip-round-0)">
+      <ellipse cx="0" cy="0" rx="300" ry="150" fill="#ffffff" opacity="0.13" transform="translate(330,330) rotate(-22)"/>
+      <ellipse cx="0" cy="0" rx="120" ry="46" fill="#ffffff" opacity="0.16" transform="translate(420,560) rotate(-22)"/>
+      <rect x="0" y="0" width="1000" height="1000" fill="url(#sheen-round)"/>
+    </g>
+    <path d="M332,366 H332 Q466,366 466,500 V500 Q466,634 332,634 H332 Q198,634 198,500 V500 Q198,366 332,366 Z" fill="none" stroke="url(#chrome-round)" stroke-width="14"/>
+    <path d="M332,366 H332 Q466,366 466,500 V500 Q466,634 332,634 H332 Q198,634 198,500 V500 Q198,366 332,366 Z" fill="none" stroke="#000000" stroke-opacity="0.4" stroke-width="2.5"/>
+    <clipPath id="clip-round-1"><path d="M668,366 H668 Q802,366 802,500 V500 Q802,634 668,634 H668 Q534,634 534,500 V500 Q534,366 668,366 Z"/></clipPath>
+    <path d="M668,366 H668 Q802,366 802,500 V500 Q802,634 668,634 H668 Q534,634 534,500 V500 Q534,366 668,366 Z" fill="url(#lens-round)"/>
+    <g clip-path="url(#clip-round-1)">
+      <ellipse cx="0" cy="0" rx="300" ry="150" fill="#ffffff" opacity="0.13" transform="translate(330,330) rotate(-22)"/>
+      <ellipse cx="0" cy="0" rx="120" ry="46" fill="#ffffff" opacity="0.16" transform="translate(420,560) rotate(-22)"/>
+      <rect x="0" y="0" width="1000" height="1000" fill="url(#sheen-round)"/>
+    </g>
+    <path d="M668,366 H668 Q802,366 802,500 V500 Q802,634 668,634 H668 Q534,634 534,500 V500 Q534,366 668,366 Z" fill="none" stroke="url(#chrome-round)" stroke-width="14"/>
+    <path d="M668,366 H668 Q802,366 802,500 V500 Q802,634 668,634 H668 Q534,634 534,500 V500 Q534,366 668,366 Z" fill="none" stroke="#000000" stroke-opacity="0.4" stroke-width="2.5"/><path d="M206,392 Q150,362 120,326" fill="none" stroke="url(#chrome-round)" stroke-width="16" stroke-linecap="round"/><path d="M794,392 Q850,362 880,326" fill="none" stroke="url(#chrome-round)" stroke-width="16" stroke-linecap="round"/></g></g>
+  <rect x="0" y="728" width="1000" height="272" fill="url(#fade-round)"/>
+</svg>
