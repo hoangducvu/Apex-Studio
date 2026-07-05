@@ -257,7 +257,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   background: var(--c-bg-soft); margin-bottom: 14px;
 }
 .card__media img {
-  width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
+  width: 100%; aspect-ratio: 1 / 1; object-fit: contain; padding: 10px;
   transition: transform 0.45s ease;
 }
 .card:hover .card__media img { transform: scale(1.06); }

@@ -177,7 +177,7 @@ app.post("/api/create-payment-intent", async (req, res) => {
         items_display: items.map(i => `${i.name} ×${i.qty}`).join(", "),
         source: "lumla-glasses-web",
       },
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ["card"],
     });
 
     res.json({ clientSecret: pi.client_secret });

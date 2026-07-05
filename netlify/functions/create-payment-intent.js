@@ -36,7 +36,7 @@ exports.handler = async (event) => {
         items_display: items.map(i => `${i.name} ×${i.qty}`).join(", "),
         source: "lumla-glasses-web",
       },
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ["card"],
     });
 
     return json(200, { clientSecret: pi.client_secret });
