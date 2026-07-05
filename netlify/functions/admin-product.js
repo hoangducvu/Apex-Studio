@@ -5,7 +5,10 @@ exports.handler = async (event) => {
   const authErr = requireAdmin(event);
   if (authErr) return authErr;
 
-  const id = (event.queryStringParameters || {}).id;
+  // Id arrives as ?id= locally, but production redirects drop query
+  // placeholders — so also parse it from the original request path.
+  const id = (event.queryStringParameters || {}).id ||
+    decodeURIComponent((event.path.match(/\/products\/([^/]+)/) || [])[1] || "");
   if (!id) return json(400, { error: "Product id required" });
 
   // PUT — update product
