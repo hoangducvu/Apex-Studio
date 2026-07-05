@@ -3,117 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shop — APEX STUDIO</title>
-  <meta name="description" content="Browse every frame in the APEX STUDIO collection. Chrome-cut streetwear eyewear, limited drops." />
-  <link rel="icon" href="assets/logo.jpg" />
+  <title>Catalog — LUMLA GLASSES</title>
+  <meta name="description" content="Browse the full LUMLA GLASSES catalog — Heavy Metallic, Light Metallic and WORLD CUP collections. Prices in EUR." />
+  <link rel="icon" href="assets/lumla/logo.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
-  <link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <style>
-    /* ── Shop page extras ─────────────────────────────────────────────── */
-    .shop-hero {
-      padding: 140px 24px 80px;
-      text-align: center;
-      position: relative;
-    }
-
-    .shop-hero h1 {
-      font-family: 'Clash Display', system-ui, sans-serif;
-      font-size: clamp(2.8rem, 8vw, 6rem);
-      font-weight: 700;
-      line-height: 1;
-      letter-spacing: -0.02em;
-      margin-bottom: 16px;
-    }
-
-    .shop-hero__sub {
-      font-size: 1rem;
-      color: var(--text-muted, #7a7a84);
-      letter-spacing: 0.05em;
-      font-family: 'Space Mono', monospace;
-    }
-
-    /* ── Filter bar ───────────────────────────────────────────────────── */
-    .filter-bar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding: 0 24px 48px;
-    }
-
-    .filter-btn {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 3px;
-      color: rgba(240,240,242,0.6);
-      font-family: 'Space Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      padding: 9px 20px;
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s, background 0.2s;
-    }
-
-    .filter-btn:hover {
-      border-color: rgba(255,255,255,0.35);
-      color: #f0f0f2;
-    }
-
-    .filter-btn.active {
-      background: #d4fc00;
-      border-color: #d4fc00;
-      color: #080809;
-    }
-
-    /* ── Shop grid section ────────────────────────────────────────────── */
-    .shop-section {
-      padding: 0 24px 100px;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    /* Loading state */
-    .grid-loading {
-      text-align: center;
-      padding: 80px 0;
-      color: rgba(240,240,242,0.4);
-      font-family: 'Space Mono', monospace;
-      font-size: 0.8rem;
-      letter-spacing: 0.15em;
-    }
-
-    .grid-empty {
-      text-align: center;
-      padding: 80px 0;
-      color: rgba(240,240,242,0.4);
-      font-size: 0.9rem;
-    }
-  </style>
   <script src="https://js.stripe.com/v3/" defer></script>
 </head>
 <body>
 
-  <!-- Grain overlay -->
-  <div class="grain" aria-hidden="true"></div>
-
-  <!-- Announcement marquee -->
-  <div class="ticker" aria-hidden="true">
-    <div class="ticker__track">
-      <span>FREE WORLDWIDE SHIPPING</span><span class="dot">/</span>
-      <span>NEW DROP — "CHROME SERIES" LIVE NOW</span><span class="dot">/</span>
-      <span>UV400 · POLARIZED · HANDCUT</span><span class="dot">/</span>
-      <span>BUILT FOR THE CULTURE</span><span class="dot">/</span>
-      <span>FREE WORLDWIDE SHIPPING</span><span class="dot">/</span>
-      <span>NEW DROP — "CHROME SERIES" LIVE NOW</span><span class="dot">/</span>
-      <span>UV400 · POLARIZED · HANDCUT</span><span class="dot">/</span>
-      <span>BUILT FOR THE CULTURE</span><span class="dot">/</span>
-    </div>
+  <!-- Announcement bar (rotating) -->
+  <div class="announce" id="announce">
+    <div class="announce__msg is-active">EVERYWHERE YOU WANNA SEE</div>
+    <div class="announce__msg">USE CODE LUMLA FOR 10% OFF!</div>
+    <div class="announce__msg">FAST SHIPPING · PRICES IN EUR €</div>
   </div>
+  <div class="subannounce">Fast shipping available · Premium eyewear for everyday style</div>
 
   <!-- Navigation -->
   <header class="nav" id="nav">
@@ -122,16 +29,13 @@
         <span></span><span></span><span></span>
       </button>
       <nav class="nav__links nav__links--left">
-        <a href="shop.html" class="active">Shop</a>
-        <a href="index.html#collections">Collections</a>
-        <a href="index.html#lookbook">Lookbook</a>
+        <a href="shop.html?filter=best-seller">Best Seller</a>
+        <a href="shop.html">Catalog</a>
+        <a href="contact.html">Contact</a>
       </nav>
-      <a href="index.html" class="nav__logo" aria-label="APEX STUDIO home">
-        <img src="assets/logo.jpg" alt="APEX STUDIO" />
-      </a>
+      <a href="index.html" class="nav__logo" aria-label="LUMLA GLASSES home"><img src="assets/lumla/logo.png" alt="LUMLA GLASSES" /></a>
       <nav class="nav__links nav__links--right">
-        <a href="index.html#story">Story</a>
-        <a href="#" class="nav__icon" aria-label="Search">Search</a>
+        <a href="index.html#reviews">Reviews</a>
         <button class="nav__cart" id="cartOpen" aria-label="Open cart">
           Cart <span class="nav__cart-count" id="cartCount">0</span>
         </button>
@@ -141,33 +45,30 @@
 
   <!-- Mobile menu -->
   <div class="mobile-menu" id="mobileMenu">
-    <a href="shop.html">Shop</a>
-    <a href="index.html#collections">Collections</a>
-    <a href="index.html#lookbook">Lookbook</a>
-    <a href="index.html#story">Story</a>
+    <a href="shop.html?filter=best-seller">Best Seller</a>
+    <a href="shop.html">Catalog</a>
+    <a href="contact.html">Contact</a>
+    <a href="index.html#reviews">Reviews</a>
     <a href="#" id="mobileCart">Cart (<span id="mobileCartCount">0</span>)</a>
   </div>
 
   <main id="top">
 
-    <!-- Shop hero -->
-    <section class="shop-hero">
-      <h1>THE <span class="chrome">COLLECTION</span></h1>
-      <p class="shop-hero__sub">Every frame, every drop.</p>
+    <!-- Catalog hero -->
+    <section class="page-hero">
+      <h1>Catalog</h1>
+      <p>Every frame, every collection — prices in EUR €.</p>
     </section>
 
-    <!-- Filter bar -->
+    <!-- Filter bar (chips injected by JS from product categories) -->
     <div class="filter-bar" id="filterBar">
-      <button class="filter-btn active" data-filter="ALL">ALL</button>
-      <button class="filter-btn" data-filter="STREET">STREET</button>
-      <button class="filter-btn" data-filter="SPORT">SPORT</button>
-      <button class="filter-btn" data-filter="LUXE">LUXE</button>
+      <button class="filter-btn active" data-filter="ALL">All</button>
     </div>
 
     <!-- Product grid -->
     <section class="shop-section">
       <div class="grid" id="productGrid">
-        <div class="grid-loading">LOADING FRAMES…</div>
+        <div class="grid-loading">Loading frames…</div>
       </div>
     </section>
 
@@ -177,33 +78,41 @@
   <footer class="footer">
     <div class="footer__top">
       <div class="footer__brand">
-        <img src="assets/logo.jpg" alt="APEX STUDIO" />
-        <p>Premium streetwear eyewear.<br />Built for the culture.</p>
+        <span class="footer__wordmark">LUMLA<span>GLASSES</span></span>
+        <p>Everywhere you wanna see.<br />Official franchise store.</p>
+        <p class="footer__contact">
+          Plaza, Sliema, Malta<br />
+          <a href="mailto:apexstudiomalta@gmail.com">apexstudiomalta@gmail.com</a>
+        </p>
       </div>
       <div class="footer__col">
         <h4>Shop</h4>
-        <a href="shop.html">New Arrivals</a>
-        <a href="shop.html">Bestsellers</a>
-        <a href="index.html#collections">Collections</a>
-        <a href="shop.html">Gift Cards</a>
+        <a href="shop.html">Catalog</a>
+        <a href="shop.html?filter=best-seller">Best Seller</a>
+        <a href="shop.html?filter=heavy-metallic">Heavy Metallic</a>
+        <a href="shop.html?filter=light-metallic">Light Metallic</a>
+        <a href="shop.html?filter=world-cup">World Cup</a>
       </div>
       <div class="footer__col">
-        <h4>Help</h4>
-        <a href="#">Shipping</a>
-        <a href="#">Returns</a>
-        <a href="#">Size Guide</a>
-        <a href="#">Contact</a>
+        <h4>Company</h4>
+        <a href="contact.html">Contact us</a>
+        <a href="shipping.html">Shipping</a>
+        <a href="returns.html">Refund policy</a>
       </div>
       <div class="footer__col">
         <h4>Follow</h4>
-        <a href="https://instagram.com/lumlaglasses" target="_blank" rel="noopener">Instagram</a>
-        <a href="#">TikTok</a>
-        <a href="#">YouTube</a>
-        <a href="#">Pinterest</a>
+        <a href="https://www.instagram.com/apexstudiomalta/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.tiktok.com/@apexstudiomalta" target="_blank" rel="noopener">TikTok</a>
+        <a href="https://www.facebook.com/profile.php?id=61591255014562" target="_blank" rel="noopener">Facebook</a>
       </div>
     </div>
     <div class="footer__bottom">
-      <p>© <span id="year"></span> APEX STUDIO. All rights reserved.</p>
+      <p>© <span id="year"></span> LUMLA GLASSES. All rights reserved.</p>
+      <nav class="footer__legal">
+        <a href="privacy.html">Privacy policy</a>
+        <a href="terms.html">Terms of service</a>
+        <a href="cookies.html">Cookies</a>
+      </nav>
       <p class="footer__pay">VISA · MASTERCARD · AMEX · PAYPAL · APPLE PAY</p>
     </div>
   </footer>
@@ -212,16 +121,16 @@
   <div class="drawer-overlay" id="drawerOverlay"></div>
   <aside class="drawer" id="drawer" aria-label="Shopping cart">
     <div class="drawer__head">
-      <h3>YOUR BAG (<span id="drawerCount">0</span>)</h3>
+      <h3>CART (<span id="drawerCount">0</span>)</h3>
       <button id="cartClose" aria-label="Close cart">✕</button>
     </div>
     <div class="drawer__items" id="drawerItems">
-      <p class="drawer__empty">Your bag is empty. Go grab a frame.</p>
+      <p class="drawer__empty">Your cart is empty. Continue shopping.</p>
     </div>
     <div class="drawer__foot">
-      <div class="drawer__subtotal"><span>Subtotal</span><strong id="drawerTotal">$0</strong></div>
-      <button class="btn btn--chrome btn--full" id="checkoutBtn">Checkout <span>→</span></button>
-      <p class="drawer__note">Free worldwide shipping · Secured by Stripe</p>
+      <div class="drawer__subtotal"><span>Subtotal</span><strong id="drawerTotal">€0</strong></div>
+      <button class="btn btn--primary btn--full" id="checkoutBtn">Check out <span>→</span></button>
+      <p class="drawer__note">Fast shipping · Secured by Stripe</p>
     </div>
   </aside>
 
@@ -236,7 +145,7 @@
         <button class="co__back" id="coBack" aria-label="Back to cart">
           <span>←</span> Back to cart
         </button>
-        <div class="co__logo">APEX STUDIO</div>
+        <div class="co__logo">LUMLA GLASSES</div>
         <div class="co__secure">
           <svg width="13" height="16" viewBox="0 0 13 16" fill="none" aria-hidden="true">
             <path d="M6.5 0L0 2.5V7c0 4.1 2.78 7.95 6.5 9C10.22 14.95 13 11.1 13 7V2.5L6.5 0Z" fill="currentColor" opacity=".35"/>
@@ -339,7 +248,7 @@
               </div>
             </fieldset>
 
-            <button class="btn btn--chrome btn--full co__next" id="coToPayment">
+            <button class="btn btn--primary btn--full co__next" id="coToPayment">
               Continue to Payment <span>→</span>
             </button>
           </div>
@@ -348,7 +257,6 @@
           <div class="co__pane co__pane--hidden" id="coPane2">
             <h2 class="co__pane-title">Payment</h2>
             <p class="co__pane-note">
-              <svg width="11" height="14" viewBox="0 0 11 14" fill="currentColor" aria-hidden="true" style="opacity:.6;vertical-align:-2px;margin-right:5px"><path d="M5.5 0L0 2V6c0 3.6 2.4 7 5.5 8C8.6 13 11 9.6 11 6V2L5.5 0Z" opacity=".3"/><path d="M4.5 8.5l-1.5-1.5.75-.75.75.75L6.75 5l.75.75L4.5 8.5Z"/></svg>
               Your card details are encrypted and handled directly by Stripe.
             </p>
 
@@ -364,8 +272,8 @@
             <div class="co__payment-error" id="coPaymentError" hidden></div>
 
             <div class="co__actions">
-              <button class="btn btn--ghost" id="coToInfo">← Back</button>
-              <button class="btn btn--chrome" id="coPlaceOrder" disabled>
+              <button class="btn btn--outline" id="coToInfo">← Back</button>
+              <button class="btn btn--primary" id="coPlaceOrder" disabled>
                 Place Order <span>→</span>
               </button>
             </div>
@@ -388,9 +296,9 @@
               <p id="coOrderNum" class="co__confirm-order"></p>
               <p class="co__confirm-sub">
                 A confirmation will be sent to <strong id="coConfirmEmail"></strong>.<br />
-                Your frames ship within 2–3 business days.
+                Your glasses ship within 2–3 business days.
               </p>
-              <button class="btn btn--ghost" id="coDone">Back to shop</button>
+              <button class="btn btn--outline" id="coDone">Continue shopping</button>
             </div>
           </div>
 
@@ -412,7 +320,7 @@
             </div>
           </div>
           <p class="co__summary-note">
-            UV400 · Polarized · Handcut acetate · Lifetime frame warranty
+            Freesize fit · Custom lens colours on request · Protective case included
           </p>
         </aside>
 
@@ -421,123 +329,5 @@
   </div><!-- /.co-overlay -->
 
   <script src="script.js"></script>
-  <script>
-    /* ── shop.js — standalone shop page logic ──────────────────────────── */
-    (function () {
-      "use strict";
-
-      const grid = document.getElementById("productGrid");
-      let allProducts = [];
-      let activeFilter = "ALL";
-
-      // Category → filter group mapping
-      const CATEGORY_MAP = {
-        "Slim Rect":       "STREET",
-        "Oversize Square": "STREET",
-        "Shield Wrap":     "SPORT",
-        "Teardrop":        "LUXE",
-        "Cat-Eye":         "LUXE",
-        "Round":           "LUXE",
-      };
-
-      function getFilterGroup(category) {
-        return CATEGORY_MAP[category] || "OTHER";
-      }
-
-      function renderGrid(products) {
-        if (!products.length) {
-          grid.innerHTML = `<div class="grid-empty">No frames found in this category.</div>`;
-          return;
-        }
-
-        grid.innerHTML = products.map((p, i) => {
-          const globalIndex = allProducts.indexOf(p);
-          const num = String((globalIndex >= 0 ? globalIndex : i) + 1).padStart(2, "0");
-
-          const soldOut  = p.quantity === 0;
-          const lowStock = !soldOut && p.quantity <= 5;
-
-          let badges = "";
-          if (p.badge) {
-            badges += `<span class="card__badge ${p.badge === "NEW" ? "" : "card__badge--ghost"}">${p.badge}</span>`;
-          }
-          if (soldOut) {
-            badges += `<span class="card__badge card__badge--ghost" style="left:auto;right:16px;top:auto;bottom:16px">SOLD OUT</span>`;
-          } else if (lowStock) {
-            badges += `<span class="card__badge card__badge--ghost">LOW STOCK</span>`;
-          }
-
-          const addBtn = soldOut
-            ? ""
-            : `<button class="card__add" data-add="${p.id}">Add to bag <span>+</span></button>`;
-
-          return `
-            <article class="card" data-reveal>
-              <div class="card__media">
-                <span class="card__no">№ ${num}</span>
-                ${badges}
-                <img src="${p.image}" alt="${p.name} sunglasses" loading="lazy" />
-                ${addBtn}
-              </div>
-              <div class="card__body">
-                <div>
-                  <div class="card__name">${p.name}</div>
-                  <div class="card__cat">${p.category}</div>
-                </div>
-                <div class="card__price">€${p.price}</div>
-              </div>
-            </article>`;
-        }).join("");
-
-        // Observe newly rendered cards for reveal animation
-        if (typeof io !== "undefined") {
-          grid.querySelectorAll("[data-reveal]").forEach(el => io.observe(el));
-        }
-      }
-
-      function applyFilter(filter) {
-        activeFilter = filter;
-        const filtered = filter === "ALL"
-          ? allProducts
-          : allProducts.filter(p => getFilterGroup(p.category) === filter);
-        renderGrid(filtered);
-      }
-
-      // Filter button clicks
-      document.getElementById("filterBar").addEventListener("click", (e) => {
-        const btn = e.target.closest(".filter-btn");
-        if (!btn) return;
-        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        applyFilter(btn.dataset.filter);
-      });
-
-      // Fetch products and boot
-      async function init() {
-        try {
-          const res = await fetch("/api/products");
-          const data = await res.json();
-          // Set global PRODUCTS so cart (script.js) can look up prices
-          window.PRODUCTS = data;
-          allProducts = data;
-          applyFilter("ALL");
-        } catch (err) {
-          grid.innerHTML = `<div class="grid-empty">Could not load products. Is the server running?</div>`;
-          console.error("Shop: failed to fetch products", err);
-        }
-      }
-
-      // Year in footer
-      const yearEl = document.getElementById("year");
-      if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-      // Wait for DOM + script.js to be ready
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", init);
-      } else {
-        init();
-      }
-    })();
-  </script>
 </body>
 </html>

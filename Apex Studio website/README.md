@@ -1,4 +1,4 @@
-# APEX STUDIO — Website Skeleton
+# LUMLA GLASSES — Website
 
 Premium streetwear eyewear storefront. Static HTML/CSS/JS — no build step.
 Inspired by lumlaglasses (attitude) × Oakley (structure), built around your

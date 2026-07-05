@@ -6,11 +6,8 @@ Thumbs.db
 .claude/
 .code-review-graph/
 
-# Database (auto-recreated on first run)
-data/*.db
-data/*.db-shm
-data/*.db-wal
+# Netlify local cache
+.netlify/
 
-# Uploaded product images (re-upload via admin panel after deploy)
-Apex Studio website/assets/uploads/*
-!Apex Studio website/assets/uploads/.gitkeep
+# Local SQLite (legacy dev database)
+data/

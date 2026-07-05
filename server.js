@@ -49,7 +49,7 @@ async function notifyOwner(pi) {
   const items = JSON.parse(pi.metadata?.items_json || "[]");
   const euros = (pi.amount_received / 100).toFixed(2);
   await mailer.sendMail({
-    from: `"APEX STUDIO" <${process.env.SMTP_USER}>`,
+    from: `"LUMLA GLASSES" <${process.env.SMTP_USER}>`,
     to: process.env.OWNER_EMAIL,
     subject: `New order — €${euros} from ${pi.receipt_email || "unknown"}`,
     html: `
@@ -175,7 +175,7 @@ app.post("/api/create-payment-intent", async (req, res) => {
       metadata: {
         items_json:    JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty, name: i.name }))),
         items_display: items.map(i => `${i.name} ×${i.qty}`).join(", "),
-        source: "apex-studio-web",
+        source: "lumla-glasses-web",
       },
       automatic_payment_methods: { enabled: true },
     });
@@ -266,7 +266,7 @@ app.get("/api/admin/stats", requireAdmin, (req, res) => {
 app.listen(PORT, () => {
   const mode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_live") ? "🟢  LIVE" : "🟡  TEST";
   const adminPw = process.env.ADMIN_PASSWORD ? "✅  set" : "❌  NOT SET (add ADMIN_PASSWORD to .env)";
-  console.log(`\n🚀  APEX STUDIO  →  http://localhost:${PORT}`);
+  console.log(`\n🚀  LUMLA GLASSES  →  http://localhost:${PORT}`);
   console.log(`    Stripe:   ${mode}`);
   console.log(`    Admin PW: ${adminPw}`);
   console.log(`    Webhook:  POST /api/webhook`);

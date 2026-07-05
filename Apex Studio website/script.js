@@ -1,41 +1,116 @@
 /* ============================================================
-   APEX STUDIO — interactions
+   LUMLA GLASSES — storefront interactions
    ============================================================ */
 
 // ---- Stillness under automation (lets headless screenshots settle) ----
 if (navigator.webdriver) document.documentElement.setAttribute("data-still", "");
 
-// ---- Product data (populated from API) ----
+// ---- Product data (populated from API, with a static fallback) ----
 let PRODUCTS = [];
 
-// ---- Render product grid ----
-const grid = document.getElementById("productGrid");
+// Fallback catalog — mirrors the franchise line-up so the grid always
+// renders when the API is unavailable (static hosting / offline).
+const FALLBACK_PRODUCTS = [
+  { id: "silver-light-20", name: "Silver Light Metallic 20", category: "Light Metallic", price: 39, image: "assets/products/azure.png",   badge: "BEST SELLER", quantity: 50 },
+  { id: "black-light-20",  name: "Black Light Metallic 20",  category: "Light Metallic", price: 39, image: "assets/products/nox.png",     badge: "",            quantity: 50 },
+  { id: "gold-light-20",   name: "Gold Light Metallic 20",   category: "Light Metallic", price: 42, image: "assets/products/ember.png",   badge: "NEW",         quantity: 50 },
+  { id: "blue-light-20",   name: "Blue Light Metallic 20",   category: "Light Metallic", price: 42, image: "assets/products/riptide.png", badge: "",            quantity: 12 },
+  { id: "heavy-chrome-01", name: "Chrome Heavy Metallic 01", category: "Heavy Metallic", price: 49, image: "assets/products/flare.png",   badge: "WORLD CUP",   quantity: 50 },
+];
 
-async function loadProducts() {
-  try {
-    const res = await fetch('/api/products');
-    PRODUCTS = await res.json();
-  } catch { /* server offline */ }
+// ---- Currency ----
+function fmt(n) {
+  const hasCents = Math.round(n * 100) % 100 !== 0;
+  return "€" + n.toLocaleString("de-DE", {
+    minimumFractionDigits: hasCents ? 2 : 0,
+    maximumFractionDigits: 2,
+  });
+}
+const fmtEur = fmt;
+
+// ---- Render product grid (with optional category filter) ----
+const grid = document.getElementById("productGrid");
+const filterBar = document.getElementById("filterBar");
+let activeFilter = "ALL";
+
+function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+
+function renderGrid() {
   if (!grid) return;
-  grid.innerHTML = PRODUCTS.map((p, i) => `
+  const list = PRODUCTS.filter((p) =>
+    activeFilter === "ALL" ||
+    slug(p.category) === activeFilter ||
+    (activeFilter === "best-seller" && /best\s*seller/i.test(p.badge || ""))
+  );
+  if (!list.length) {
+    grid.innerHTML = `<div class="grid-loading">No frames in this collection yet — check back soon.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map((p) => `
     <article class="card" data-reveal>
       <div class="card__media">
-        <span class="card__no">№ ${String(i + 1).padStart(2, "0")}</span>
-        ${p.badge ? `<span class="card__badge ${p.badge === "NEW" ? "" : "card__badge--ghost"}">${p.badge}</span>` : ""}
-        ${p.quantity === 0 ? `<span class="card__badge card__badge--ghost" style="left:auto;right:16px;top:auto;bottom:16px">SOLD OUT</span>` : p.quantity <= 5 ? `<span class="card__badge card__badge--ghost">LOW STOCK</span>` : ""}
-        <img src="${p.image}" alt="${p.name} sunglasses" loading="lazy" />
-        ${p.quantity > 0 ? `<button class="card__add" data-add="${p.id}">Add to bag <span>+</span></button>` : ""}
+        ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}">${p.badge}</span>` : ""}
+        ${p.quantity === 0 ? `<span class="card__badge card__badge--soft card__badge--stock">SOLD OUT</span>` : p.quantity <= 5 ? `<span class="card__badge card__badge--soft card__badge--stock">LOW STOCK</span>` : ""}
+        <img src="${p.image}" alt="${p.name} glasses" loading="lazy" />
+        ${p.quantity > 0 ? `<button class="card__add" data-add="${p.id}">Add to cart +</button>` : ""}
       </div>
       <div class="card__body">
-        <div>
-          <div class="card__name">${p.name}</div>
-          <div class="card__cat">${p.category}</div>
-        </div>
-        <div class="card__price">€${p.price}</div>
+        <div class="card__name">${p.name}</div>
+        <div class="card__cat">${p.category || "Eyewear"}</div>
+        <div class="card__stars" aria-hidden="true">★★★★★</div>
+        <div class="card__price">${fmt(p.price)}</div>
       </div>
     </article>
   `).join("");
-  document.querySelectorAll("#productGrid [data-reveal]").forEach(el => io.observe(el));
+  grid.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
+}
+
+function renderFilters() {
+  if (!filterBar) return;
+  const cats = [...new Set(PRODUCTS.map((p) => p.category).filter(Boolean))];
+  filterBar.innerHTML =
+    `<button class="filter-btn" data-filter="ALL">All</button>` +
+    cats.map((c) => `<button class="filter-btn" data-filter="${slug(c)}">${c}</button>`).join("") +
+    `<button class="filter-btn" data-filter="best-seller">Best Seller</button>`;
+  syncFilterButtons();
+  if (filterBar.dataset.bound) return;
+  filterBar.dataset.bound = "1";
+  filterBar.addEventListener("click", (e) => {
+    const btn = e.target.closest(".filter-btn");
+    if (!btn) return;
+    activeFilter = btn.dataset.filter;
+    syncFilterButtons();
+    renderGrid();
+  });
+}
+
+function syncFilterButtons() {
+  if (!filterBar) return;
+  filterBar.querySelectorAll(".filter-btn").forEach((b) =>
+    b.classList.toggle("active", b.dataset.filter === activeFilter)
+  );
+}
+
+async function loadProducts() {
+  // Render the static catalog immediately so the grid never waits on the
+  // network, then swap in live data if the API answers in time.
+  PRODUCTS = FALLBACK_PRODUCTS;
+  const want = new URLSearchParams(location.search).get("filter");
+  if (want && filterBar) activeFilter = want;
+  renderFilters();
+  renderGrid();
+
+  try {
+    const res = await fetch("/api/products", { signal: AbortSignal.timeout(4000) });
+    const data = await res.json();
+    if (res.ok && Array.isArray(data) && data.length) {
+      PRODUCTS = data;
+      renderFilters();
+      renderGrid();
+    }
+  } catch {
+    /* server offline or slow — static catalog already shown */
+  }
 }
 
 // ---- Cart state ----
@@ -52,8 +127,6 @@ const els = {
   toast: document.getElementById("toast"),
 };
 
-function fmt(n) { return "€" + n.toLocaleString("de-DE"); }
-
 function cartQty() {
   let q = 0; cart.forEach((v) => (q += v)); return q;
 }
@@ -64,12 +137,12 @@ function cartTotal() {
 function renderCart() {
   const q = cartQty();
   els.count.textContent = q;
-  els.mobileCount.textContent = q;
+  if (els.mobileCount) els.mobileCount.textContent = q;
   els.drawerCount.textContent = q;
   els.total.textContent = fmt(cartTotal());
 
   if (cart.size === 0) {
-    els.items.innerHTML = `<p class="drawer__empty">Your bag is empty. Go grab a frame.</p>`;
+    els.items.innerHTML = `<p class="drawer__empty">Your cart is empty. Continue shopping.</p>`;
     return;
   }
   els.items.innerHTML = [...cart.entries()].map(([id, qty]) => {
@@ -96,7 +169,7 @@ function addToCart(id) {
   cart.set(id, (cart.get(id) || 0) + 1);
   renderCart();
   const p = PRODUCTS.find((p) => p.id === id);
-  showToast(`${p ? p.name : id} added to bag`);
+  showToast(`${p ? p.name : id} added to cart`);
 }
 
 function showToast(msg) {
@@ -132,8 +205,30 @@ document.addEventListener("click", (e) => {
 document.getElementById("cartOpen").addEventListener("click", openDrawer);
 document.getElementById("cartClose").addEventListener("click", closeDrawer);
 els.overlay.addEventListener("click", closeDrawer);
-document.getElementById("mobileCart").addEventListener("click", (e) => { e.preventDefault(); closeMobile(); openDrawer(); });
+const mobileCartLink = document.getElementById("mobileCart");
+if (mobileCartLink) mobileCartLink.addEventListener("click", (e) => { e.preventDefault(); closeMobile(); openDrawer(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
+
+// ---- Announcement bar rotation ----
+(function () {
+  const msgs = document.querySelectorAll("#announce .announce__msg");
+  if (msgs.length < 2) return;
+  let i = 0;
+  setInterval(() => {
+    msgs[i].classList.remove("is-active");
+    i = (i + 1) % msgs.length;
+    msgs[i].classList.add("is-active");
+  }, 3500);
+})();
+
+// ---- Stories carousel nav ----
+(function () {
+  const track = document.getElementById("storiesTrack");
+  if (!track) return;
+  const step = 258; // story width + gap
+  document.getElementById("storiesPrev")?.addEventListener("click", () => track.scrollBy({ left: -step, behavior: "smooth" }));
+  document.getElementById("storiesNext")?.addEventListener("click", () => track.scrollBy({ left: step, behavior: "smooth" }));
+})();
 
 // ---- Nav scroll state ----
 const nav = document.getElementById("nav");
@@ -156,7 +251,7 @@ const newsForm = document.getElementById("newsForm");
 if (newsForm) {
   newsForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    document.getElementById("newsNote").textContent = "You're on the list. Watch your inbox for the next drop.";
+    document.getElementById("newsNote").textContent = "Thanks for subscribing — exclusive offers are on the way.";
     e.target.reset();
   });
 }
@@ -182,8 +277,6 @@ const coOrderNum     = document.getElementById("coOrderNum");
 const coPaymentError = document.getElementById("coPaymentError");
 const coPlaceOrderBtn = document.getElementById("coPlaceOrder");
 const coStripeLoader  = document.getElementById("coStripeLoader");
-
-function fmtEur(n) { return "€" + n.toLocaleString("de-DE"); }
 
 // ── Stripe state ──────────────────────────────────────────────────────────
 let _stripe   = null;
@@ -232,38 +325,37 @@ async function mountPaymentElement() {
     if (error) throw new Error(error);
 
     const appearance = {
-      theme: "night",
+      theme: "stripe",
       variables: {
-        colorPrimary:          "#d4fc00",
-        colorBackground:       "#0e0e11",
-        colorText:             "#f0f0f2",
-        colorDanger:           "#ff5252",
-        colorTextPlaceholder:  "#48484f",
-        fontFamily:            "'Satoshi', system-ui, sans-serif",
+        colorPrimary:          "#830083",
+        colorBackground:       "#ffffff",
+        colorText:             "#121212",
+        colorDanger:           "#830083",
+        colorTextPlaceholder:  "#9a96a4",
+        fontFamily:            "'Poppins', system-ui, sans-serif",
         borderRadius:          "0px",
         spacingUnit:           "4px",
       },
       rules: {
         ".Input": {
-          border:      "1px solid rgba(255,255,255,0.14)",
+          border:      "1px solid rgba(46,42,57,0.20)",
           padding:     "14px 16px",
           fontSize:    "0.95rem",
         },
         ".Input:focus": {
-          border:     "1px solid #d4fc00",
-          boxShadow:  "0 0 0 3px rgba(212,252,0,0.08)",
+          border:     "1px solid #830083",
+          boxShadow:  "0 0 0 3px rgba(131,0,131,0.08)",
         },
         ".Label": {
-          color:          "#7a7a84",
-          fontSize:       "0.68rem",
-          letterSpacing:  "0.1em",
+          color:          "#6d6878",
+          fontSize:       "0.72rem",
+          letterSpacing:  "0.06em",
           textTransform:  "uppercase",
           marginBottom:   "7px",
-          fontFamily:     "'Space Mono', monospace",
         },
-        ".Tab": { border: "1px solid rgba(255,255,255,0.1)" },
-        ".Tab--selected": { border: "1px solid #d4fc00", color: "#d4fc00" },
-        ".Tab--selected:hover": { color: "#d4fc00" },
+        ".Tab": { border: "1px solid rgba(46,42,57,0.16)" },
+        ".Tab--selected": { border: "1px solid #830083", color: "#2e2a39" },
+        ".Tab--selected:hover": { color: "#2e2a39" },
       },
     };
 
@@ -284,7 +376,7 @@ async function mountPaymentElement() {
 
 // ── Checkout flow ─────────────────────────────────────────────────────────
 function openCheckout() {
-  if (cart.size === 0) { showToast("Your bag is empty!"); return; }
+  if (cart.size === 0) { showToast("Your cart is empty!"); return; }
   renderCheckoutSummary();
   coOverlay.classList.add("open");
   coOverlay.setAttribute("aria-hidden", "false");
@@ -374,7 +466,7 @@ coPlaceOrderBtn.addEventListener("click", async () => {
   if (paymentIntent && paymentIntent.status === "succeeded") {
     const email = document.getElementById("coEmail").value.trim();
     coConfirmEmail.textContent = email || "your email";
-    coOrderNum.textContent = "Order APX-" + paymentIntent.id.slice(-8).toUpperCase();
+    coOrderNum.textContent = "Order LML-" + paymentIntent.id.slice(-8).toUpperCase();
     cart.clear();
     renderCart();
     setCoStep(3);

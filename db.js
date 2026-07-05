@@ -46,12 +46,12 @@ if (count === 0) {
   );
 
   const seeds = [
-    ["blade",   "APEX BLADE",      "Shield Wrap",     245, "assets/products/blade.svg",   "NEW",        50, 0],
-    ["nox",     "NOX RECTANGLE",   "Slim Rect",        210, "assets/products/rect.svg",    "",           50, 1],
-    ["aviator", "CHROME AVIATOR",  "Teardrop",         265, "assets/products/aviator.svg", "BESTSELLER", 50, 2],
-    ["halo",    "HALO ROUND",      "Round",            195, "assets/products/round.svg",   "",           50, 3],
-    ["feline",  "FELINE",          "Cat-Eye",          220, "assets/products/cateye.svg",  "LIMITED",    50, 4],
-    ["brick",   "BRICK",           "Oversize Square",  230, "assets/products/square.svg",  "",           50, 5],
+    ["azure",   "AZURE",   "Square",            220, "assets/products/azure.png",   "NEW",        50, 0],
+    ["flare",   "FLARE",   "Iridescent Sport",  195, "assets/products/flare.png",   "",           50, 1],
+    ["ember",   "EMBER",   "Square",            210, "assets/products/ember.png",   "BESTSELLER", 50, 2],
+    ["riptide", "RIPTIDE", "Sport Wrap",        185, "assets/products/riptide.png", "",           12, 3],
+    ["nox",     "NOX",     "Rectangle",         230, "assets/products/nox.png",     "LIMITED",    50, 4],
+    ["crystal", "CRYSTAL", "Square",            205, "assets/products/crystal.png", "",           50, 5],
   ];
 
   const seedAll = db.transaction(() => {

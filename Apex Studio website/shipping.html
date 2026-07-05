@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shipping Policy — LUMLA GLASSES</title>
+  <meta name="description" content="LUMLA GLASSES shipping policy — delivery times and costs — prices in EUR." />
+  <link rel="icon" href="assets/lumla/logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div class="announce"><div class="announce__msg is-active">EVERYWHERE YOU WANNA SEE</div></div>
+
+  <header class="nav" id="nav">
+    <div class="nav__inner">
+      <button class="nav__burger" id="burger" aria-label="Open menu"><span></span><span></span><span></span></button>
+      <nav class="nav__links nav__links--left">
+        <a href="shop.html?filter=best-seller">Best Seller</a>
+        <a href="shop.html">Catalog</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <a href="index.html" class="nav__logo" aria-label="LUMLA GLASSES home"><img src="assets/lumla/logo.png" alt="LUMLA GLASSES" /></a>
+      <nav class="nav__links nav__links--right">
+        <a href="index.html#reviews">Reviews</a>
+        <a href="shop.html" class="nav__cart">Cart</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="shop.html?filter=best-seller">Best Seller</a>
+    <a href="shop.html">Catalog</a>
+    <a href="contact.html">Contact</a>
+    <a href="index.html#reviews">Reviews</a>
+  </div>
+
+  <main>
+    <article class="page">
+      <h1>Shipping Policy</h1>
+      <p class="page-updated">Last updated: 4 July 2026</p>
+
+      <p>We ship from our hub in Malta to all EU member states and selected neighbouring countries. All prices on this site are in <strong>EUR (€)</strong> and include VAT where applicable.</p>
+
+      <h2>Delivery times &amp; rates</h2>
+      <table>
+        <tr><th>Region</th><th>Delivery time</th><th>Cost</th></tr>
+        <tr><td>Malta</td><td>1–2 business days</td><td>Free</td></tr>
+        <tr><td>EU (mainland)</td><td>3–6 business days</td><td>Free on all orders</td></tr>
+        <tr><td>Rest of Europe (non-EU)</td><td>5–10 business days</td><td>Calculated at checkout</td></tr>
+      </table>
+
+      <h2>Processing</h2>
+      <p>Orders are processed within 1–2 business days. Frames with a custom lens colour may need an extra 2–3 days before dispatch. You will receive a confirmation email with tracking as soon as your order ships.</p>
+
+      <h2>Customs &amp; duties</h2>
+      <p>Orders shipped within the EU incur no additional customs charges. For non-EU destinations, any import duties or local taxes are the responsibility of the customer.</p>
+
+      <h2>Questions?</h2>
+      <p>Write to us at <a href="mailto:apexstudiomalta@gmail.com">apexstudiomalta@gmail.com</a> — we usually reply within one business day.</p>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <span class="footer__wordmark">LUMLA<span>GLASSES</span></span>
+        <p>Everywhere you wanna see.<br />Official franchise store.</p>
+        <p class="footer__contact">
+          Plaza, Sliema, Malta<br />
+          <a href="mailto:apexstudiomalta@gmail.com">apexstudiomalta@gmail.com</a>
+        </p>
+      </div>
+      <div class="footer__col">
+        <h4>Shop</h4>
+        <a href="shop.html">Catalog</a>
+        <a href="shop.html?filter=best-seller">Best Seller</a>
+        <a href="shop.html?filter=heavy-metallic">Heavy Metallic</a>
+        <a href="shop.html?filter=light-metallic">Light Metallic</a>
+        <a href="shop.html?filter=world-cup">World Cup</a>
+      </div>
+      <div class="footer__col">
+        <h4>Company</h4>
+        <a href="contact.html">Contact us</a>
+        <a href="shipping.html">Shipping</a>
+        <a href="returns.html">Refund policy</a>
+      </div>
+      <div class="footer__col">
+        <h4>Follow</h4>
+        <a href="https://www.instagram.com/apexstudiomalta/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.tiktok.com/@apexstudiomalta" target="_blank" rel="noopener">TikTok</a>
+        <a href="https://www.facebook.com/profile.php?id=61591255014562" target="_blank" rel="noopener">Facebook</a>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>&copy; <span id="year"></span> LUMLA GLASSES. All rights reserved.</p>
+      <nav class="footer__legal">
+        <a href="privacy.html">Privacy policy</a>
+        <a href="terms.html">Terms of service</a>
+        <a href="cookies.html">Cookies</a>
+      </nav>
+      <p class="footer__pay">VISA · MASTERCARD · AMEX · PAYPAL · APPLE PAY</p>
+    </div>
+  </footer>
+
+  <script>
+    (function(){
+      var nav=document.getElementById('nav');
+      addEventListener('scroll',function(){nav.classList.toggle('scrolled',scrollY>20);});
+      var b=document.getElementById('burger'),m=document.getElementById('mobileMenu');
+      b.addEventListener('click',function(){b.classList.toggle('active');m.classList.toggle('open');});
+      m.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){b.classList.remove('active');m.classList.remove('open');});});
+      var y=document.getElementById('year'); if(y) y.textContent=new Date().getFullYear();
+    })();
+  </script>
+</body>
+</html>
