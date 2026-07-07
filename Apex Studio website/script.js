@@ -131,6 +131,10 @@ function renderGrid() {
     list = PRODUCTS.filter((p) => p.id !== current).slice(0, 4);
     const related = document.getElementById("pdRelated");
     if (related) related.hidden = list.length === 0;
+  } else if (!filterBar) {
+    // Homepage "Best Sellers": just a few frames, best-seller badges first
+    const isBest = (p) => /best\s*seller/i.test(p.badge || "");
+    list = [...PRODUCTS.filter(isBest), ...PRODUCTS.filter((p) => !isBest(p))].slice(0, 4);
   } else {
     list = PRODUCTS.filter((p) =>
       activeFilter === "ALL" ||
