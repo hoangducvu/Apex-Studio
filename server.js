@@ -83,6 +83,11 @@ app.get("/admin", (req, res) =>
   res.sendFile(path.join(__dirname, "admin", "index.html"))
 );
 
+// ── Product detail pages (pretty URLs) ─────────────────────────────────────
+app.get("/products/:id", (req, res) =>
+  res.sendFile(path.join(__dirname, "Apex Studio website", "product.html"))
+);
+
 // ── Static uploads (before main static) ───────────────────────────────────
 app.use("/assets/uploads", express.static(UPLOADS_DIR));
 

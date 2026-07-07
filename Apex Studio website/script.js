@@ -33,33 +33,131 @@ const grid = document.getElementById("productGrid");
 const filterBar = document.getElementById("filterBar");
 let activeFilter = "ALL";
 
+// ---- Product detail page (/products/<id> → product.html) ----
+const pdContent = document.getElementById("pdContent");
+const isProductPage = !!pdContent;
+
+function currentProductId() {
+  const m = location.pathname.match(/\/products\/([^\/?#]+)/);
+  if (m) return decodeURIComponent(m[1]);
+  return new URLSearchParams(location.search).get("id");
+}
+
+function renderProductDetail() {
+  if (!pdContent) return;
+  const id = currentProductId();
+  const p = PRODUCTS.find((x) => x.id === id);
+  if (!p) {
+    pdContent.innerHTML = `
+      <div class="pd__missing">
+        <h1>Frame not found</h1>
+        <p>This product may have sold out or been removed.</p>
+        <a class="btn btn--primary" href="/shop.html">Browse the catalog <span>→</span></a>
+      </div>`;
+    return;
+  }
+
+  document.title = `${p.name} — LUMLA GLASSES`;
+  const soldOut  = p.quantity === 0;
+  const lowStock = !soldOut && p.quantity <= 5;
+  const prevQty  = parseInt(document.getElementById("pdQtyVal")?.textContent, 10) || 1;
+  const qty      = soldOut ? 1 : Math.min(prevQty, p.quantity);
+
+  pdContent.innerHTML = `
+    <div class="pd__media">
+      ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}">${p.badge}</span>` : ""}
+      <img src="${imgUrl(p)}" alt="${p.name} glasses" />
+    </div>
+    <div class="pd__info">
+      <p class="pd__cat">${p.category || "Eyewear"}</p>
+      <h1 class="pd__name">${p.name}</h1>
+      <div class="pd__stars" aria-hidden="true">★★★★★ <span>Loved by our customers</span></div>
+      <div class="pd__price">${fmt(p.price)}</div>
+      <p class="pd__stock ${soldOut ? "pd__stock--out" : ""}">
+        ${soldOut ? "Sold out" : lowStock ? `Low stock — only ${p.quantity} left` : "In stock — ships in 2–3 business days"}
+      </p>
+
+      <div class="pd__buy">
+        <div class="pd__qty" ${soldOut ? "hidden" : ""}>
+          <button id="pdQtyMinus" aria-label="Decrease quantity">−</button>
+          <span id="pdQtyVal">${qty}</span>
+          <button id="pdQtyPlus" aria-label="Increase quantity">+</button>
+        </div>
+        <button class="btn btn--primary pd__add" id="pdAdd" ${soldOut ? "disabled" : ""}>
+          ${soldOut ? "Sold out" : "Add to cart +"}
+        </button>
+      </div>
+
+      <p class="pd__note">Can customise 1 or more different lens colours, depending on request — <a href="/contact.html">contact us</a>.</p>
+
+      <ul class="pd__specs">
+        <li><span>Fit</span> Freesize — suits most face shapes</li>
+        <li><span>Lenses</span> UV400 protection</li>
+        <li><span>Includes</span> Protective case &amp; cleaning cloth</li>
+        <li><span>Shipping</span> Fast EU shipping · prices in EUR €</li>
+      </ul>
+    </div>`;
+
+  if (!soldOut) {
+    const qtyVal = document.getElementById("pdQtyVal");
+    document.getElementById("pdQtyMinus").addEventListener("click", () => {
+      qtyVal.textContent = Math.max(1, parseInt(qtyVal.textContent, 10) - 1);
+    });
+    document.getElementById("pdQtyPlus").addEventListener("click", () => {
+      qtyVal.textContent = Math.min(p.quantity, parseInt(qtyVal.textContent, 10) + 1);
+    });
+    document.getElementById("pdAdd").addEventListener("click", () => {
+      addToCart(p.id, parseInt(qtyVal.textContent, 10) || 1);
+      openDrawer();
+    });
+  }
+}
+
 function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+
+// Resolve product image to a root-absolute URL so it works from any page
+// depth (the detail pages live at /products/<id>).
+function imgUrl(p) {
+  const src = p?.image || "";
+  return /^(https?:)?\/\//.test(src) || src.startsWith("/") ? src : "/" + src;
+}
 
 function renderGrid() {
   if (!grid) return;
-  const list = PRODUCTS.filter((p) =>
-    activeFilter === "ALL" ||
-    slug(p.category) === activeFilter ||
-    (activeFilter === "best-seller" && /best\s*seller/i.test(p.badge || ""))
-  );
+  let list;
+  if (isProductPage) {
+    // Detail page: grid becomes "You may also like" (everything but this frame)
+    const current = currentProductId();
+    list = PRODUCTS.filter((p) => p.id !== current).slice(0, 4);
+    const related = document.getElementById("pdRelated");
+    if (related) related.hidden = list.length === 0;
+  } else {
+    list = PRODUCTS.filter((p) =>
+      activeFilter === "ALL" ||
+      slug(p.category) === activeFilter ||
+      (activeFilter === "best-seller" && /best\s*seller/i.test(p.badge || ""))
+    );
+  }
   if (!list.length) {
-    grid.innerHTML = `<div class="grid-loading">No frames in this collection yet — check back soon.</div>`;
+    grid.innerHTML = isProductPage ? "" : `<div class="grid-loading">No frames in this collection yet — check back soon.</div>`;
     return;
   }
   grid.innerHTML = list.map((p) => `
     <article class="card" data-reveal>
-      <div class="card__media">
-        ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}">${p.badge}</span>` : ""}
-        ${p.quantity === 0 ? `<span class="card__badge card__badge--soft card__badge--stock">SOLD OUT</span>` : p.quantity <= 5 ? `<span class="card__badge card__badge--soft card__badge--stock">LOW STOCK</span>` : ""}
-        <img src="${p.image}" alt="${p.name} glasses" loading="lazy" />
-        ${p.quantity > 0 ? `<button class="card__add" data-add="${p.id}">Add to cart +</button>` : ""}
-      </div>
-      <div class="card__body">
-        <div class="card__name">${p.name}</div>
-        <div class="card__cat">${p.category || "Eyewear"}</div>
-        <div class="card__stars" aria-hidden="true">★★★★★</div>
-        <div class="card__price">${fmt(p.price)}</div>
-      </div>
+      <a class="card__link" href="/products/${encodeURIComponent(p.id)}" aria-label="View ${p.name}">
+        <div class="card__media">
+          ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}">${p.badge}</span>` : ""}
+          ${p.quantity === 0 ? `<span class="card__badge card__badge--soft card__badge--stock">SOLD OUT</span>` : p.quantity <= 5 ? `<span class="card__badge card__badge--soft card__badge--stock">LOW STOCK</span>` : ""}
+          <img src="${imgUrl(p)}" alt="${p.name} glasses" loading="lazy" />
+          ${p.quantity > 0 ? `<button class="card__add" data-add="${p.id}">Add to cart +</button>` : ""}
+        </div>
+        <div class="card__body">
+          <div class="card__name">${p.name}</div>
+          <div class="card__cat">${p.category || "Eyewear"}</div>
+          <div class="card__stars" aria-hidden="true">★★★★★</div>
+          <div class="card__price">${fmt(p.price)}</div>
+        </div>
+      </a>
     </article>
   `).join("");
   grid.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
@@ -99,6 +197,7 @@ async function loadProducts() {
   if (want && filterBar) activeFilter = want;
   renderFilters();
   renderGrid();
+  renderProductDetail();
 
   try {
     const res = await fetch("/api/products", { signal: AbortSignal.timeout(4000) });
@@ -107,6 +206,7 @@ async function loadProducts() {
       PRODUCTS = data;
       renderFilters();
       renderGrid();
+      renderProductDetail();
     }
   } catch {
     /* server offline or slow — static catalog already shown */
@@ -150,7 +250,7 @@ function renderCart() {
     if (!p) return "";
     return `
       <div class="drawer-item">
-        <img src="${p.image}" alt="${p.name}" />
+        <img src="${imgUrl(p)}" alt="${p.name}" />
         <div>
           <div class="drawer-item__name">${p.name}</div>
           <div class="drawer-item__price">${fmt(p.price)}</div>
@@ -165,8 +265,8 @@ function renderCart() {
   }).join("");
 }
 
-function addToCart(id) {
-  cart.set(id, (cart.get(id) || 0) + 1);
+function addToCart(id, qty = 1) {
+  cart.set(id, (cart.get(id) || 0) + qty);
   renderCart();
   const p = PRODUCTS.find((p) => p.id === id);
   showToast(`${p ? p.name : id} added to cart`);
@@ -185,7 +285,7 @@ function closeDrawer() { els.drawer.classList.remove("open"); els.overlay.classL
 // ---- Event delegation ----
 document.addEventListener("click", (e) => {
   const add = e.target.closest("[data-add]");
-  if (add) { addToCart(add.dataset.add); openDrawer(); return; }
+  if (add) { e.preventDefault(); addToCart(add.dataset.add); openDrawer(); return; }
 
   const inc = e.target.closest("[data-inc]");
   if (inc) { cart.set(inc.dataset.inc, cart.get(inc.dataset.inc) + 1); renderCart(); return; }
@@ -395,7 +495,7 @@ function renderCheckoutSummary() {
     if (!p) return "";
     return `
       <div class="co__item">
-        <img class="co__item-img" src="${p.image}" alt="${p.name}" />
+        <img class="co__item-img" src="${imgUrl(p)}" alt="${p.name}" />
         <div>
           <div class="co__item-name">${p.name}</div>
           <div class="co__item-qty">Qty: ${qty}</div>

@@ -56,6 +56,12 @@
   to     = "/.netlify/functions/config"
   status = 200
 
+# Product detail pages — pretty URLs like /products/black-light-20
+[[redirects]]
+  from   = "/products/:id"
+  to     = "/product.html?id=:id"
+  status = 200
+
 # Admin panel — serve index.html at /admin
 [[redirects]]
   from   = "/admin"

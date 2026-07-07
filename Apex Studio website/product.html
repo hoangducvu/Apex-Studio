@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product — LUMLA GLASSES</title>
+  <meta name="description" content="LUMLA GLASSES product details — premium eyewear, prices in EUR." />
+  <link rel="icon" href="/assets/lumla/logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+  <script src="https://js.stripe.com/v3/" defer></script>
+</head>
+<body>
+
+  <!-- Announcement bar (rotating) -->
+  <div class="announce" id="announce">
+    <div class="announce__msg is-active">EVERYWHERE YOU WANNA SEE</div>
+    <div class="announce__msg">USE CODE LUMLA FOR 10% OFF!</div>
+    <div class="announce__msg">FAST SHIPPING · PRICES IN EUR €</div>
+  </div>
+  <div class="subannounce">Fast shipping available · Premium eyewear for everyday style</div>
+
+  <!-- Navigation -->
+  <header class="nav" id="nav">
+    <div class="nav__inner">
+      <button class="nav__burger" id="burger" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav__links nav__links--left">
+        <a href="/shop.html?filter=best-seller">Best Seller</a>
+        <a href="/shop.html">Catalog</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+      <a href="/index.html" class="nav__logo" aria-label="LUMLA GLASSES home"><img src="/assets/lumla/logo.png" alt="LUMLA GLASSES" /></a>
+      <nav class="nav__links nav__links--right">
+        <a href="/index.html#reviews">Reviews</a>
+        <button class="nav__cart" id="cartOpen" aria-label="Open cart">
+          Cart <span class="nav__cart-count" id="cartCount">0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="/shop.html?filter=best-seller">Best Seller</a>
+    <a href="/shop.html">Catalog</a>
+    <a href="/contact.html">Contact</a>
+    <a href="/index.html#reviews">Reviews</a>
+    <a href="#" id="mobileCart">Cart (<span id="mobileCartCount">0</span>)</a>
+  </div>
+
+  <main id="top">
+
+    <!-- Product detail (rendered by script.js) -->
+    <section class="pd" id="pdPage">
+      <div class="pd__inner" id="pdContent">
+        <div class="grid-loading">Loading frame…</div>
+      </div>
+    </section>
+
+    <!-- Feature blocks -->
+    <section class="pd-features" id="pdFeatures">
+      <div class="pd-features__grid">
+        <div class="pd-feature">
+          <span class="pd-feature__check">✓</span>
+          <h4>Premium Materials</h4>
+          <p>Hand-finished frames built from durable, skin-friendly materials.</p>
+        </div>
+        <div class="pd-feature">
+          <span class="pd-feature__check">✓</span>
+          <h4>UV Protection</h4>
+          <p>Full UV400 lenses shield your eyes in every season.</p>
+        </div>
+        <div class="pd-feature">
+          <span class="pd-feature__check">✓</span>
+          <h4>Lightweight Comfort</h4>
+          <p>Freesize fit that stays comfortable from morning to night.</p>
+        </div>
+        <div class="pd-feature">
+          <span class="pd-feature__check">✓</span>
+          <h4>Modern Design</h4>
+          <p>Statement silhouettes designed to be seen everywhere.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- You may also like -->
+    <section class="shop-section pd-related" id="pdRelated" hidden>
+      <h2 class="pd-related__title">You may also like</h2>
+      <div class="grid" id="productGrid"></div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <span class="footer__wordmark">LUMLA<span>GLASSES</span></span>
+        <p>Everywhere you wanna see.<br />Official franchise store.</p>
+        <p class="footer__contact">
+          Plaza, Sliema, Malta<br />
+          <a href="mailto:lumlaglassesmt@gmail.com">lumlaglassesmt@gmail.com</a>
+        </p>
+      </div>
+      <div class="footer__col">
+        <h4>Shop</h4>
+        <a href="/shop.html">Catalog</a>
+        <a href="/shop.html?filter=best-seller">Best Seller</a>
+        <a href="/shop.html?filter=heavy-metallic">Heavy Metallic</a>
+        <a href="/shop.html?filter=light-metallic">Light Metallic</a>
+        <a href="/shop.html?filter=world-cup">World Cup</a>
+      </div>
+      <div class="footer__col">
+        <h4>Company</h4>
+        <a href="/contact.html">Contact us</a>
+        <a href="/shipping.html">Shipping</a>
+        <a href="/returns.html">Refund policy</a>
+      </div>
+      <div class="footer__col">
+        <h4>Follow</h4>
+        <a href="https://www.instagram.com/apexstudiomalta/" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.tiktok.com/@apexstudiomalta" target="_blank" rel="noopener">TikTok</a>
+        <a href="https://www.facebook.com/profile.php?id=61591255014562" target="_blank" rel="noopener">Facebook</a>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p>© <span id="year"></span> LUMLA GLASSES. All rights reserved.</p>
+      <nav class="footer__legal">
+        <a href="/privacy.html">Privacy policy</a>
+        <a href="/terms.html">Terms of service</a>
+        <a href="/cookies.html">Cookies</a>
+      </nav>
+      <p class="footer__pay">VISA · MASTERCARD · AMEX · PAYPAL · APPLE PAY</p>
+    </div>
+  </footer>
+
+  <!-- CART DRAWER -->
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <aside class="drawer" id="drawer" aria-label="Shopping cart">
+    <div class="drawer__head">
+      <h3>CART (<span id="drawerCount">0</span>)</h3>
+      <button id="cartClose" aria-label="Close cart">✕</button>
+    </div>
+    <div class="drawer__items" id="drawerItems">
+      <p class="drawer__empty">Your cart is empty. Continue shopping.</p>
+    </div>
+    <div class="drawer__foot">
+      <div class="drawer__subtotal"><span>Subtotal</span><strong id="drawerTotal">€0</strong></div>
+      <button class="btn btn--primary btn--full" id="checkoutBtn">Check out <span>→</span></button>
+      <p class="drawer__note">Fast shipping · Secured by Stripe</p>
+    </div>
+  </aside>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- CHECKOUT OVERLAY -->
+  <div class="co-overlay" id="coOverlay" aria-hidden="true">
+    <div class="co">
+
+      <header class="co__header">
+        <button class="co__back" id="coBack" aria-label="Back to cart">
+          <span>←</span> Back to cart
+        </button>
+        <div class="co__logo"><img src="/assets/lumla/logo.png" alt="LUMLA GLASSES" /></div>
+        <div class="co__secure">
+          <svg width="13" height="16" viewBox="0 0 13 16" fill="none" aria-hidden="true">
+            <path d="M6.5 0L0 2.5V7c0 4.1 2.78 7.95 6.5 9C10.22 14.95 13 11.1 13 7V2.5L6.5 0Z" fill="currentColor" opacity=".35"/>
+            <path d="M5.5 9.5l-2-2 1-1 1 1 2.5-2.5 1 1L5.5 9.5Z" fill="currentColor"/>
+          </svg>
+          Secure checkout
+        </div>
+      </header>
+
+      <div class="co__body">
+
+        <!-- LEFT: form column -->
+        <div class="co__form-col">
+
+          <!-- Step progress -->
+          <nav class="co__steps" aria-label="Checkout steps">
+            <span class="co__step co__step--active" data-step="1">
+              <span class="co__step-n">01</span> Information
+            </span>
+            <span class="co__step-div">/</span>
+            <span class="co__step" data-step="2">
+              <span class="co__step-n">02</span> Payment
+            </span>
+            <span class="co__step-div">/</span>
+            <span class="co__step" data-step="3">
+              <span class="co__step-n">03</span> Confirm
+            </span>
+          </nav>
+
+          <!-- STEP 1 — Contact & Shipping -->
+          <div class="co__pane" id="coPane1">
+            <h2 class="co__pane-title">Contact &amp; Shipping</h2>
+
+            <fieldset class="co__fieldset">
+              <legend class="co__legend">Contact</legend>
+              <div class="co__field co__field--full">
+                <label for="coEmail">Email address</label>
+                <input type="email" id="coEmail" placeholder="your@email.com" autocomplete="email" />
+              </div>
+            </fieldset>
+
+            <fieldset class="co__fieldset">
+              <legend class="co__legend">Shipping address</legend>
+              <div class="co__row">
+                <div class="co__field">
+                  <label for="coFirst">First name</label>
+                  <input type="text" id="coFirst" placeholder="John" autocomplete="given-name" />
+                </div>
+                <div class="co__field">
+                  <label for="coLast">Last name</label>
+                  <input type="text" id="coLast" placeholder="Doe" autocomplete="family-name" />
+                </div>
+              </div>
+              <div class="co__field co__field--full">
+                <label for="coAddress">Address</label>
+                <input type="text" id="coAddress" placeholder="123 Street Name" autocomplete="street-address" />
+              </div>
+              <div class="co__row">
+                <div class="co__field">
+                  <label for="coCity">City</label>
+                  <input type="text" id="coCity" placeholder="Amsterdam" autocomplete="address-level2" />
+                </div>
+                <div class="co__field">
+                  <label for="coZip">Postal code</label>
+                  <input type="text" id="coZip" placeholder="1011 AB" autocomplete="postal-code" />
+                </div>
+              </div>
+              <div class="co__field co__field--full">
+                <label for="coCountry">Country</label>
+                <select id="coCountry" autocomplete="country-name">
+                  <option value="">Select EU country…</option>
+                  <option>Austria</option>
+                  <option>Belgium</option>
+                  <option>Bulgaria</option>
+                  <option>Croatia</option>
+                  <option>Cyprus</option>
+                  <option>Czech Republic</option>
+                  <option>Denmark</option>
+                  <option>Estonia</option>
+                  <option>Finland</option>
+                  <option>France</option>
+                  <option>Germany</option>
+                  <option>Greece</option>
+                  <option>Hungary</option>
+                  <option>Ireland</option>
+                  <option>Italy</option>
+                  <option>Latvia</option>
+                  <option>Lithuania</option>
+                  <option>Luxembourg</option>
+                  <option>Malta</option>
+                  <option>Netherlands</option>
+                  <option>Poland</option>
+                  <option>Portugal</option>
+                  <option>Romania</option>
+                  <option>Slovakia</option>
+                  <option>Slovenia</option>
+                  <option>Spain</option>
+                  <option>Sweden</option>
+                </select>
+              </div>
+            </fieldset>
+
+            <button class="btn btn--primary btn--full co__next" id="coToPayment">
+              Continue to Payment <span>→</span>
+            </button>
+          </div>
+
+          <!-- STEP 2 — Payment (Stripe) -->
+          <div class="co__pane co__pane--hidden" id="coPane2">
+            <h2 class="co__pane-title">Payment</h2>
+            <p class="co__pane-note">
+              Your card details are encrypted and handled directly by Stripe.
+            </p>
+
+            <!-- Stripe Payment Element mounts here -->
+            <div class="co__stripe-wrap">
+              <div class="co__stripe-loader" id="coStripeLoader" aria-label="Loading payment form">
+                <span class="co__stripe-spinner"></span>
+                <span>Loading secure payment…</span>
+              </div>
+              <div id="payment-element"></div>
+            </div>
+
+            <div class="co__payment-error" id="coPaymentError" hidden></div>
+
+            <div class="co__actions">
+              <button class="btn btn--outline" id="coToInfo">← Back</button>
+              <button class="btn btn--primary" id="coPlaceOrder" disabled>
+                Place Order <span>→</span>
+              </button>
+            </div>
+
+            <div class="co__stripe-badge">
+              <svg viewBox="0 0 60 25" width="44" aria-label="Powered by Stripe" fill="currentColor"><path d="M5.4 9.2c0-.6.5-1 1.3-1 1 0 2.1.3 3.1.8V6.5A8.7 8.7 0 006.7 6C3.8 6 2 7.5 2 9.4c0 3.7 5 3.1 5 4.7 0 .7-.6 1-1.5 1-1.1 0-2.4-.5-3.5-1.1v2.6c1.2.5 2.4.8 3.5.8 2.9 0 4.9-1.4 4.9-3.4C10.4 10.1 5.4 10.8 5.4 9.2zm10.8-5.8l-3 .7-.1 9.6c0 1.8 1.3 3 3.1 3 1 0 1.7-.2 2.1-.4V14c-.4.2-2.3.7-2.3-1v-4h2.3V6.7H18l.1-3.3zM22 7.7l-.2-1H19.4v10h3.2v-6.8c.8-1 2-1 2.4-1v-3c-.5 0-2.1.2-3 2zm4.1-1h3.2v10h-3.2zM27.7 5a1.8 1.8 0 000-3.6A1.8 1.8 0 0027.7 5zm10.6 1.8c-1.2 0-2 .6-2.5 1l-.1-.8h-2.8v13.4l3.2-.7v-3.3c.5.3 1.1.6 2.1.6 2.2 0 4.2-1.7 4.2-5.4 0-3.4-2-5.8-4.1-5.8zm-.7 8.9c-.7 0-1.1-.2-1.4-.6V10c.3-.5.8-.7 1.4-.7 1.1 0 1.8 1.2 1.8 2.7 0 1.6-.7 2.7-1.8 2.7zM58 11.5c0-3-1.4-5.7-4.2-5.7-2.8 0-4.5 2.7-4.5 5.7 0 3.7 2.1 5.6 5 5.6 1.4 0 2.5-.3 3.3-.8v-2.5c-.8.4-1.8.7-2.9.7-1.2 0-2.2-.4-2.3-1.8H58v-1.2zm-5.7-1c0-1.3.8-1.9 1.5-1.9.7 0 1.4.6 1.4 1.9h-2.9z"/></svg>
+            </div>
+          </div>
+
+          <!-- STEP 3 — Confirmation -->
+          <div class="co__pane co__pane--hidden" id="coPane3">
+            <div class="co__confirm">
+              <div class="co__confirm-icon" aria-hidden="true">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                  <circle cx="24" cy="24" r="23" stroke="currentColor" stroke-width="1.5" opacity=".25"/>
+                  <path d="M14 24l7 7 13-13" stroke="currentColor" stroke-width="2" stroke-linecap="square"/>
+                </svg>
+              </div>
+              <h2 class="co__confirm-title">Order placed.</h2>
+              <p id="coOrderNum" class="co__confirm-order"></p>
+              <p class="co__confirm-sub">
+                A confirmation will be sent to <strong id="coConfirmEmail"></strong>.<br />
+                Your glasses ship within 2–3 business days.
+              </p>
+              <button class="btn btn--outline" id="coDone">Continue shopping</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: order summary -->
+        <aside class="co__summary">
+          <h3 class="co__summary-title">Your Order</h3>
+          <div class="co__summary-items" id="coItems"></div>
+          <div class="co__summary-totals">
+            <div class="co__total-row">
+              <span>Subtotal</span><span id="coSubtotal">€0</span>
+            </div>
+            <div class="co__total-row">
+              <span>Shipping</span><span class="co__free">FREE</span>
+            </div>
+            <div class="co__total-row co__total-row--grand">
+              <span>Total</span><span id="coGrandTotal">€0</span>
+            </div>
+          </div>
+          <p class="co__summary-note">
+            Freesize fit · Custom lens colours on request · Protective case included
+          </p>
+        </aside>
+
+      </div><!-- /.co__body -->
+    </div><!-- /.co -->
+  </div><!-- /.co-overlay -->
+
+  <script src="/script.js"></script>
+</body>
+</html>

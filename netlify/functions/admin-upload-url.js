@@ -16,9 +16,21 @@ exports.handler = async (event) => {
   const ext      = path.extname(filename).toLowerCase() || ".jpg";
   const safeName = `products/${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
 
-  const { data, error } = await supabase.storage
+  let { data, error } = await supabase.storage
     .from("product-images")
     .createSignedUploadUrl(safeName);
+
+  // Bucket missing (fresh Supabase project) — create it and retry once
+  if (error && /not exist|not found/i.test(error.message)) {
+    await supabase.storage.createBucket("product-images", {
+      public: true,
+      fileSizeLimit: "10MB",
+      allowedMimeTypes: allowed,
+    });
+    ({ data, error } = await supabase.storage
+      .from("product-images")
+      .createSignedUploadUrl(safeName));
+  }
 
   if (error) return json(500, { error: error.message });
 
