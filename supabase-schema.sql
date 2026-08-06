@@ -3,17 +3,22 @@
 
 -- ── Tables ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS products (
-  id         TEXT        PRIMARY KEY,
-  name       TEXT        NOT NULL,
-  category   TEXT        DEFAULT '',
-  price      FLOAT       NOT NULL,
-  image      TEXT        DEFAULT '',
-  badge      TEXT        DEFAULT '',
-  quantity   INTEGER     DEFAULT 0,
-  active     BOOLEAN     DEFAULT TRUE,
-  sort_order INTEGER     DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  id            TEXT        PRIMARY KEY,
+  name          TEXT        NOT NULL,
+  category      TEXT        DEFAULT '',
+  price         FLOAT       NOT NULL,
+  image         TEXT        DEFAULT '',
+  badge         TEXT        DEFAULT '',
+  quantity      INTEGER     DEFAULT 0,
+  active        BOOLEAN     DEFAULT TRUE,
+  sort_order    INTEGER     DEFAULT 0,
+  -- frames sharing a variant_group are the same style in different colours
+  variant_group TEXT        DEFAULT '',
+  color_label   TEXT        DEFAULT '',
+  created_at    TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Existing installs: see supabase-migration-variants.sql
 
 CREATE TABLE IF NOT EXISTS orders (
   id         SERIAL      PRIMARY KEY,

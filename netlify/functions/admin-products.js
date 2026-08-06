@@ -19,27 +19,35 @@ exports.handler = async (event) => {
   // POST — create product
   if (event.httpMethod === "POST") {
     const body = JSON.parse(event.body || "{}");
-    const { name, category, price, badge, quantity, sort_order, image, active } = body;
+    const { name, category, price, badge, quantity, sort_order, image, active,
+            variant_group, color_label } = body;
 
     if (!name || !price) return json(400, { error: "name and price required" });
     if (!image)          return json(400, { error: "image required" });
 
     const id = `prod_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    const { data, error } = await supabase
-      .from("products")
-      .insert({
-        id,
-        name,
-        category:   category   || "",
-        price:      parseFloat(price),
-        image,
-        badge:      badge      || "",
-        quantity:   parseInt(quantity)   || 0,
-        sort_order: parseInt(sort_order) || 0,
-        active:     active !== false,
-      })
-      .select()
-      .single();
+    const row = {
+      id,
+      name,
+      category:   category   || "",
+      price:      parseFloat(price),
+      image,
+      badge:      badge      || "",
+      quantity:   parseInt(quantity)   || 0,
+      sort_order: parseInt(sort_order) || 0,
+      active:     active !== false,
+      variant_group: (variant_group || "").trim(),
+      color_label:   (color_label   || "").trim(),
+    };
+
+    let { data, error } = await supabase.from("products").insert(row).select().single();
+    // Colour-grouping columns are optional until supabase-migration-variants.sql
+    // has been run — retry without them rather than failing the save.
+    if (error && /column .*(variant_group|color_label).* does not exist/i.test(error.message)) {
+      delete row.variant_group;
+      delete row.color_label;
+      ({ data, error } = await supabase.from("products").insert(row).select().single());
+    }
 
     if (error) return json(500, { error: error.message });
     return json(200, data);

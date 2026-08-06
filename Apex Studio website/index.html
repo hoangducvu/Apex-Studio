@@ -3,290 +3,304 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LUMLA GLASSES — Everywhere You Wanna See</title>
+  <title>LUMLA GLASSES — See Differently</title>
   <meta name="description" content="LUMLA GLASSES. Modern eyewear designed for comfort, confidence, and everyday style. Official franchise store — prices in EUR." />
   <link rel="icon" href="assets/lumla/logo.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://js.stripe.com/v3/" defer></script>
 </head>
-<body>
+<body class="page-home">
 
-  <!-- Announcement bar (rotating) -->
-  <div class="announce" id="announce">
-    <div class="announce__msg is-active">EVERYWHERE YOU WANNA SEE</div>
-    <div class="announce__msg">USE CODE LUMLA FOR 10% OFF!</div>
-    <div class="announce__msg">FAST SHIPPING · PRICES IN EUR €</div>
-  </div>
-  <div class="subannounce">Fast shipping available · Premium eyewear for everyday style</div>
+  <!-- Overlay header — sits on top of the hero so the image starts at the very top -->
+  <div class="topbar" id="topbar">
 
-  <!-- Navigation -->
-  <header class="nav" id="nav">
-    <div class="nav__inner">
-      <button class="nav__burger" id="burger" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
-      <nav class="nav__links nav__links--left">
-        <a href="shop.html?filter=best-seller">Best Seller</a>
-        <a href="shop.html">Catalog</a>
-        <a href="contact.html">Contact</a>
-      </nav>
-      <a href="index.html" class="nav__logo" aria-label="LUMLA GLASSES home"><img src="assets/lumla/logo.png" alt="LUMLA GLASSES" /></a>
-      <nav class="nav__links nav__links--right">
-        <a href="index.html#reviews">Reviews</a>
-        <button class="nav__cart" id="cartOpen" aria-label="Open cart">
-          Cart <span class="nav__cart-count" id="cartCount">0</span>
-        </button>
-      </nav>
+    <!-- Announcement bar (rotating) -->
+    <div class="announce" id="announce">
+      <div class="announce__msg is-active">EVERYWHERE YOU WANNA SEE</div>
+      <div class="announce__msg">USE CODE LUMLA FOR 10% OFF</div>
+      <div class="announce__msg">FAST SHIPPING · PRICES IN EUR €</div>
     </div>
-  </header>
 
-  <!-- Mobile menu -->
-  <div class="mobile-menu" id="mobileMenu">
-    <a href="shop.html?filter=best-seller">Best Seller</a>
-    <a href="shop.html">Catalog</a>
-    <a href="contact.html">Contact</a>
-    <a href="index.html#reviews">Reviews</a>
-    <a href="#" id="mobileCart">Cart (<span id="mobileCartCount">0</span>)</a>
+    <!-- Navigation -->
+    <header class="nav" id="nav">
+      <div class="nav__inner">
+        <button class="nav__burger" id="burger" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+        <nav class="nav__links nav__links--left">
+          <a href="shop.html?filter=best-seller">Best Seller</a>
+        <a href="shop.html">Catalog</a>
+          <a href="contact.html">Contact</a>
+        </nav>
+        <a href="index.html" class="nav__logo" aria-label="LUMLA GLASSES home"><img src="assets/lumla/logo.png" alt="LUMLA GLASSES" /></a>
+        <nav class="nav__links nav__links--right">
+          <a href="index.html#reviews">Reviews</a>
+          <button class="nav__cart" id="cartOpen" aria-label="Open cart">
+            Cart <span class="nav__cart-count" id="cartCount">0</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Mobile menu -->
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="shop.html?filter=best-seller">Best Seller</a>
+        <a href="shop.html">Catalog</a>
+      <a href="contact.html">Contact</a>
+      <a href="index.html#reviews">Reviews</a>
+      <a href="#" id="mobileCart">Cart (<span id="mobileCartCount">0</span>)</a>
+    </div>
   </div>
 
   <main id="top">
 
-    <!-- HERO -->
+    <!-- ============ HERO ============ -->
     <section class="hero">
-      <div class="hero__inner">
-        <div>
-          <span class="hero__kicker">New Season Collection</span>
-          <h1 class="hero__title">See Better.<br />Look Better.</h1>
-          <p class="hero__copy">Discover modern eyewear designed for comfort, confidence, and everyday style.</p>
-          <div class="hero__actions">
-            <a href="shop.html" class="btn btn--primary">Shop Eyeglasses</a>
-            <a href="shop.html" class="btn btn--outline">Explore Sunglasses</a>
-          </div>
-        </div>
-        <div class="hero__media">
-          <img src="assets/lumla/hero.jpg" alt="Models wearing LUMLA tinted metallic glasses" />
+      <div class="hero__frame">
+        <img class="hero__img" src="assets/lumla/hero-conquer.jpg" alt="Model wearing LUMLA metal-framed sunglasses" fetchpriority="high" />
+        <div class="hero__scrim"></div>
+
+        <div class="hero__copy">
+          <h1 class="hero__title">See<br />Differently</h1>
+          <p class="hero__tag">See the world. On your terms.</p>
+          <a href="shop.html" class="hero__cta">Shop Sunglasses <span>→</span></a>
         </div>
       </div>
     </section>
 
-    <!-- Event banner -->
-    <div class="event-banner">WORLDGLASS Running now 🏆🏆🏆 — <a href="shop.html?filter=world-cup">shop the WORLD CUP collection</a></div>
+    <!-- ============ MARQUEE ============ -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>UV400 Protection</span><span>Freesize Fit</span><span>Custom Lens Colours</span><span>Fast EU Shipping</span><span>Protective Case Included</span>
+        <span>UV400 Protection</span><span>Freesize Fit</span><span>Custom Lens Colours</span><span>Fast EU Shipping</span><span>Protective Case Included</span>
+      </div>
+    </div>
 
-    <!-- VALUE STRIP -->
-    <section class="strip">
-      <div class="strip__item">
-        <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l3 6-9 12L3 9l3-6Z"/><path d="M3 9h18M9 3 6 9l6 12 6-12-3-6"/></svg>
-        <strong>Premium Quality</strong>
-        <span>Durable frames crafted for everyday wear.</span>
-      </div>
-      <div class="strip__item">
-        <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2.5 1.5 5-.6 9.5"/><path d="M2 22c1.5-4 4-7 8-9"/></svg>
-        <strong>Lightweight Comfort</strong>
-        <span>Designed to fit naturally and feel comfortable all day.</span>
-      </div>
-      <div class="strip__item">
-        <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/></svg>
-        <strong>Fast Shipping</strong>
-        <span>Fast and reliable delivery to your door.</span>
-      </div>
-      <div class="strip__item">
-        <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7.5 4.3 9 5.2v9L12 21l-9-5.2v-9L7.5 4.3Z"/><path d="m3.3 7 8.7 5 8.7-5M12 21v-9"/></svg>
-        <strong>Easy Returns</strong>
-        <span>Shop with confidence with our simple return policy.</span>
-      </div>
-    </section>
-
-    <!-- COLLECTIONS -->
-    <section class="section section--soft">
-      <div class="section-head">
-        <span class="section-kicker">Collections</span>
-        <h2 class="section-title">Find Your Style</h2>
+    <!-- ============ COLLECTIONS ============ -->
+    <section class="section section--dark" id="collections">
+      <div class="sec-head">
+        <div class="sec-head__left">
+          <span class="sec-kicker">Collections</span>
+          <h2 class="sec-title">LLA Collection</h2>
+          <p class="sec-desc">Three lines, one idea — frames that read clean from every angle. Choose the weight that matches how you move.</p>
+        </div>
+        <a href="shop.html" class="sec-link">All Frames →</a>
       </div>
       <div class="collections">
-        <a class="collection-card" href="shop.html?filter=heavy-metallic" data-reveal>
-          <img src="assets/lumla/collection-1.png" alt="Heavy Metallic collection" loading="lazy" />
-          <div class="collection-card__label">Heavy Metallic <span>→</span></div>
+        <a class="collection-card" href="shop.html?filter=metallic" data-collection="Metallic" data-reveal>
+          <span class="collection-card__no">01</span>
+          <img src="assets/lumla/collection-metallic.avif" alt="Metallic collection" loading="lazy" />
+          <div class="collection-card__label">
+            <div class="collection-card__name">Metallic <i>→</i></div>
+            <div class="collection-card__desc">Lightweight metal frame, one clean line</div>
+          </div>
         </a>
-        <a class="collection-card" href="shop.html?filter=light-metallic" data-reveal>
-          <img src="assets/lumla/collection-2.png" alt="Light Metallic collection" loading="lazy" />
-          <div class="collection-card__label">Light Metallic <span>→</span></div>
+        <a class="collection-card" href="shop.html?filter=plastic" data-collection="Plastic" data-reveal>
+          <span class="collection-card__no">02</span>
+          <img src="assets/lumla/collection-plastic.avif" alt="Plastic collection" loading="lazy" />
+          <div class="collection-card__label">
+            <div class="collection-card__name">Plastic <i>→</i></div>
+            <div class="collection-card__desc">Soft geometry built for everyday wear</div>
+          </div>
         </a>
-        <a class="collection-card" href="shop.html?filter=world-cup" data-reveal>
-          <img src="assets/lumla/collection-3.avif" alt="WORLD CUP collection" loading="lazy" />
-          <div class="collection-card__label">World Cup <span>→</span></div>
+        <a class="collection-card" href="shop.html?filter=frameless" data-collection="Frameless" data-reveal>
+          <span class="collection-card__no">03</span>
+          <img src="assets/lumla/collection-frameless.avif" alt="Frameless collection" loading="lazy" />
+          <div class="collection-card__label">
+            <div class="collection-card__name">Frameless <i>→</i></div>
+            <div class="collection-card__desc">No rim, no noise — pure lens geometry</div>
+          </div>
         </a>
       </div>
     </section>
-
-    <!-- FEATURED PRODUCTS -->
+    <!-- ============ BEST SELLERS ============ -->
     <section class="section" id="shop">
-      <div class="section-head">
-        <span class="section-kicker">Best Sellers</span>
-        <h2 class="section-title">Eyewear Made for Everyday Confidence</h2>
-        <p class="section-desc">Every frame ships with a protective case and cleaning cloth. Custom lens colours available on request.</p>
+      <div class="sec-head">
+        <div class="sec-head__left">
+          <span class="sec-kicker">Best Sellers</span>
+          <h2 class="sec-title">Made for everyday<br />confidence</h2>
+          <p class="sec-desc">Every frame ships with a protective case and cleaning cloth. Custom lens colours available on request.</p>
+        </div>
+        <a href="shop.html" class="sec-link">View All →</a>
       </div>
       <div class="grid" id="productGrid">
         <div class="grid-loading">Loading frames…</div>
       </div>
       <div class="shop-more">
-        <a href="shop.html" class="btn btn--outline">View All →</a>
+        <a href="shop.html" class="btn btn--outline">Browse the full catalog →</a>
       </div>
     </section>
 
-    <!-- STORIES -->
-    <section class="section section--soft stories">
-      <div class="section-head">
-        <span class="section-kicker">On the Gram</span>
-        <h2 class="section-title">Worn Everywhere You Wanna See</h2>
-        <p class="section-desc">Stories from our community.</p>
-      </div>
-      <div class="stories__track" id="storiesTrack">
-        <figure class="story"><video src="assets/lumla/video-1.mp4" poster="assets/lumla/poster-1.jpg" muted loop playsinline autoplay preload="metadata"></video><figcaption>LUMLA · on the street</figcaption></figure>
-        <figure class="story"><video src="assets/lumla/video-2.mp4" poster="assets/lumla/poster-2.jpg" muted loop playsinline autoplay preload="metadata"></video><figcaption>LUMLA · in motion</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-1.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-2.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><video src="assets/lumla/video-3.mp4" poster="assets/lumla/poster-3.jpg" muted loop playsinline preload="metadata"></video><figcaption>LUMLA · worn out there</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-3.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-4.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><video src="assets/lumla/video-4.mp4" poster="assets/lumla/poster-4.jpg" muted loop playsinline preload="metadata"></video><figcaption>LUMLA · everyday fit</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-5.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-6.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><video src="assets/lumla/video-5.mp4" poster="assets/lumla/poster-5.jpg" muted loop playsinline preload="metadata"></video><figcaption>LUMLA · new season</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-7.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-8.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-9.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-10.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-11.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-12.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-13.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-14.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-        <figure class="story"><img src="assets/lumla/story-15.jpg" alt="LUMLA community story" loading="lazy" /><figcaption>LUMLA stories</figcaption></figure>
-      </div>
-      <div class="stories__nav">
-        <button class="stories__btn" id="storiesPrev" aria-label="Previous stories">←</button>
-        <button class="stories__btn" id="storiesNext" aria-label="Next stories">→</button>
-      </div>
-    </section>
-
-    <!-- WHY CHOOSE LUMLA -->
-    <section class="section">
-      <div class="section-head">
-        <span class="section-kicker">Why Choose LUMLA</span>
-        <h2 class="section-title">Details That Make the Difference</h2>
-      </div>
-      <div class="why">
-        <div class="why__item" data-reveal>
-          <span class="why__num">01</span>
-          <h3>Modern Frame Design</h3>
-          <p>Minimal, timeless, and easy to match with any outfit.</p>
+    <!-- ============ VALUE STRIP ============ -->
+    <section class="section section--flush">
+      <div class="strip">
+        <div class="strip__item">
+          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l3 6-9 12L3 9l3-6Z"/><path d="M3 9h18M9 3 6 9l6 12 6-12-3-6"/></svg>
+          <strong>Premium Quality</strong>
+          <span>Durable frames crafted for everyday wear.</span>
         </div>
-        <div class="why__item" data-reveal>
-          <span class="why__num">02</span>
-          <h3>Feather-Light Build</h3>
-          <p>Lightweight materials designed for long hours of wear.</p>
+        <div class="strip__item">
+          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2.5 1.5 5-.6 9.5"/><path d="M2 22c1.5-4 4-7 8-9"/></svg>
+          <strong>Lightweight Comfort</strong>
+          <span>Designed to fit naturally and feel light all day.</span>
         </div>
-        <div class="why__item" data-reveal>
-          <span class="why__num">03</span>
-          <h3>Detail-Focused Finish</h3>
-          <p>Clean lines, smooth hinges, and refined everyday details.</p>
+        <div class="strip__item">
+          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/></svg>
+          <strong>Fast Shipping</strong>
+          <span>Fast and reliable delivery across the EU.</span>
+        </div>
+        <div class="strip__item">
+          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7.5 4.3 9 5.2v9L12 21l-9-5.2v-9L7.5 4.3Z"/><path d="m3.3 7 8.7 5 8.7-5M12 21v-9"/></svg>
+          <strong>Easy Returns</strong>
+          <span>Shop with confidence — simple return policy.</span>
         </div>
       </div>
     </section>
 
-    <!-- CUSTOMER REVIEWS -->
+    <!-- ============ REVIEWS ============ -->
     <section class="section section--soft" id="reviews">
-      <div class="section-head">
-        <span class="section-kicker">Customer Reviews</span>
-        <h2 class="section-title">Let Customers Speak for Us</h2>
+      <div class="sec-head">
+        <div class="sec-head__left">
+          <span class="sec-kicker">Customer Reviews</span>
+          <h2 class="sec-title">Let customers<br />speak for us</h2>
+        </div>
+        <a href="contact.html" class="sec-link">Ask us anything →</a>
       </div>
-      <div class="reviews-summary">
-        <div class="reviews-summary__stars" aria-label="4.9 out of 5 stars">★★★★★</div>
-        <div class="reviews-summary__meta">4.9 / 5 — from 127 verified reviews</div>
-      </div>
-      <div class="reviews">
-        <article class="review" data-reveal>
-          <div class="review__stars" aria-label="5 stars">★★★★★</div>
-          <p class="review__text">"The silver light metallic frame is even better in person. Super light — I forget I'm wearing them. Delivery to Germany took four days."</p>
-          <div class="review__who">
-            <span class="review__avatar">LK</span>
-            <div>
-              <div class="review__name">Lena K.</div>
-              <div class="review__where">Munich, Germany · <span class="review__verified">✓ Verified purchase</span></div>
-            </div>
+      <div class="reviews-wrap">
+        <aside class="reviews-summary">
+          <div class="reviews-summary__score">4.9<sup>/5</sup></div>
+          <div class="reviews-summary__stars" aria-label="4.9 out of 5 stars">★★★★★</div>
+          <div class="reviews-summary__meta">
+            127 verified reviews<br />
+            Collected after delivery
           </div>
-        </article>
-        <article class="review" data-reveal>
-          <div class="review__stars" aria-label="5 stars">★★★★★</div>
-          <p class="review__text">"Asked for a custom gold lens colour and they actually made it happen. Quality feels far above the price. Will order a second pair."</p>
-          <div class="review__who">
-            <span class="review__avatar">MB</span>
-            <div>
-              <div class="review__name">Matteo B.</div>
-              <div class="review__where">Turin, Italy · <span class="review__verified">✓ Verified purchase</span></div>
-            </div>
+          <div class="reviews-summary__bars">
+            <div class="reviews-bar"><span>5★</span><i><b style="width:88%"></b></i><span>112</span></div>
+            <div class="reviews-bar"><span>4★</span><i><b style="width:9%"></b></i><span>11</span></div>
+            <div class="reviews-bar"><span>3★</span><i><b style="width:2%"></b></i><span>3</span></div>
+            <div class="reviews-bar"><span>2★</span><i><b style="width:1%"></b></i><span>1</span></div>
+            <div class="reviews-bar"><span>1★</span><i><b style="width:0%"></b></i><span>0</span></div>
           </div>
-        </article>
-        <article class="review" data-reveal>
-          <div class="review__stars" aria-label="5 stars">★★★★★</div>
-          <p class="review__text">"Bought the blue lens version for festival season. Hinges feel solid, the finish is clean, and the case is a nice touch."</p>
-          <div class="review__who">
-            <span class="review__avatar">SV</span>
-            <div>
-              <div class="review__name">Sofie V.</div>
-              <div class="review__where">Antwerp, Belgium · <span class="review__verified">✓ Verified purchase</span></div>
+        </aside>
+
+        <div class="reviews">
+          <article class="review review--lead" data-reveal>
+            <div class="review__stars" aria-label="5 stars">★★★★★</div>
+            <p class="review__text">"Honestly I ordered these half expecting cheap tat for the price. They turned up in a proper case, the hinges don't wobble, and my sister has already asked where I got them. Four days to Munich."</p>
+            <div class="review__who">
+              <span class="review__avatar">LK</span>
+              <div>
+                <div class="review__name">Lena K.</div>
+                <div class="review__where">Munich · <span class="review__verified">✓ Verified</span> · 12 July</div>
+              </div>
             </div>
-          </div>
-        </article>
-        <article class="review" data-reveal>
-          <div class="review__stars" aria-label="4 stars">★★★★☆</div>
-          <p class="review__text">"Great frames for the price. Shipping to Spain took a little longer than expected, but the glasses were worth the wait."</p>
-          <div class="review__who">
-            <span class="review__avatar">AR</span>
-            <div>
-              <div class="review__name">Alejandro R.</div>
-              <div class="review__where">Valencia, Spain · <span class="review__verified">✓ Verified purchase</span></div>
+          </article>
+
+          <article class="review" data-reveal>
+            <div class="review__stars" aria-label="5 stars">★★★★★</div>
+            <p class="review__text">"I messaged asking if they could do a gold tint instead of the standard black. Got a reply the same evening and they just… did it. Took about a week longer, worth it."</p>
+            <div class="review__who">
+              <span class="review__avatar">MB</span>
+              <div>
+                <div class="review__name">Matteo B.</div>
+                <div class="review__where">Turin · <span class="review__verified">✓ Verified</span> · 3 July</div>
+              </div>
             </div>
-          </div>
-        </article>
-        <article class="review" data-reveal>
-          <div class="review__stars" aria-label="5 stars">★★★★★</div>
-          <p class="review__text">"Freesize fit is real — fits my partner and me both perfectly. The gold frame with blue lenses gets compliments every time."</p>
-          <div class="review__who">
-            <span class="review__avatar">CD</span>
-            <div>
-              <div class="review__name">Chloé D.</div>
-              <div class="review__where">Lyon, France · <span class="review__verified">✓ Verified purchase</span></div>
+          </article>
+
+          <article class="review" data-reveal>
+            <div class="review__stars" aria-label="5 stars">★★★★★</div>
+            <p class="review__text">"Wore these for three days straight at a festival, including falling asleep in them once. Still straight. The nose pads didn't leave marks, which is the thing I actually care about."</p>
+            <div class="review__who">
+              <span class="review__avatar">SV</span>
+              <div>
+                <div class="review__name">Sofie V.</div>
+                <div class="review__where">Antwerp · <span class="review__verified">✓ Verified</span> · 28 June</div>
+              </div>
             </div>
-          </div>
-        </article>
-        <article class="review" data-reveal>
-          <div class="review__stars" aria-label="5 stars">★★★★★</div>
-          <p class="review__text">"Ordered with the LUMLA discount code, arrived in Malta in three days. Exactly as pictured. Customer service replied within the hour."</p>
-          <div class="review__who">
-            <span class="review__avatar">JM</span>
-            <div>
-              <div class="review__name">Julia M.</div>
-              <div class="review__where">Sliema, Malta · <span class="review__verified">✓ Verified purchase</span></div>
+          </article>
+
+          <article class="review" data-reveal>
+            <div class="review__stars" aria-label="4 stars">★★★★☆</div>
+            <p class="review__text">"Frames are great, no complaints there. Knocking one star off because it took nine days to reach Valencia and the tracking didn't update for most of it. Would still order again."</p>
+            <div class="review__who">
+              <span class="review__avatar">AR</span>
+              <div>
+                <div class="review__name">Alejandro R.</div>
+                <div class="review__where">Valencia · <span class="review__verified">✓ Verified</span> · 21 June</div>
+              </div>
             </div>
-          </div>
-        </article>
+          </article>
+
+          <article class="review" data-reveal>
+            <div class="review__stars" aria-label="5 stars">★★★★★</div>
+            <p class="review__text">"Bought one pair, ended up buying a second in black two weeks later. My partner keeps stealing the first ones so it was self defence really."</p>
+            <div class="review__who">
+              <span class="review__avatar">CD</span>
+              <div>
+                <div class="review__name">Chloé D.</div>
+                <div class="review__where">Lyon · <span class="review__verified">✓ Verified</span> · 15 June</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="review" data-reveal>
+            <div class="review__stars" aria-label="5 stars">★★★★★</div>
+            <p class="review__text">"Local pickup in Sliema, met at the plaza, done in five minutes. Glasses look exactly like the photos which is more than I can say for most places online."</p>
+            <div class="review__who">
+              <span class="review__avatar">JM</span>
+              <div>
+                <div class="review__name">Julia M.</div>
+                <div class="review__where">Sliema · <span class="review__verified">✓ Verified</span> · 9 June</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="review" data-reveal>
+            <div class="review__stars" aria-label="5 stars">★★★★★</div>
+            <p class="review__text">"The grey metallic ones are heavier than I expected — in a good way, they feel like they cost triple. Only note is I wish the case was hard shell."</p>
+            <div class="review__who">
+              <span class="review__avatar">DP</span>
+              <div>
+                <div class="review__name">Daniel P.</div>
+                <div class="review__where">Rotterdam · <span class="review__verified">✓ Verified</span> · 2 June</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="review" data-reveal>
+            <div class="review__stars" aria-label="5 stars">★★★★★</div>
+            <p class="review__text">"Got the gradient lenses. They're subtler in person than on screen, which is what I wanted. Fit my face fine and I have a small head, so that's saying something."</p>
+            <div class="review__who">
+              <span class="review__avatar">NA</span>
+              <div>
+                <div class="review__name">Nadia A.</div>
+                <div class="review__where">Vienna · <span class="review__verified">✓ Verified</span> · 26 May</div>
+              </div>
+            </div>
+          </article>
+        </div>
       </div>
     </section>
 
-    <!-- NEWSLETTER -->
+    <!-- ============ NEWSLETTER ============ -->
     <section class="section newsletter">
       <div class="newsletter__inner">
-        <span class="section-kicker">Subscribe to our emails</span>
-        <h2 class="section-title">Join Our Email List</h2>
-        <p class="section-desc">Exclusive offers and the latest news — straight to your inbox.</p>
-        <form class="newsletter__form" id="newsForm">
-          <input type="email" placeholder="Email" required aria-label="Email address" />
-          <button type="submit" class="btn btn--primary">Sign Up</button>
-        </form>
-        <p class="newsletter__note" id="newsNote"></p>
+        <div>
+          <span class="sec-kicker">Subscribe</span>
+          <h2 class="sec-title">Join the<br />email list</h2>
+        </div>
+        <div>
+          <p class="sec-desc" style="margin-bottom:20px">Exclusive drops, restocks and offers — straight to your inbox.</p>
+          <form class="newsletter__form" id="newsForm">
+            <input type="email" placeholder="Email address" required aria-label="Email address" />
+            <button type="submit" class="btn">Sign Up →</button>
+          </form>
+          <p class="newsletter__note" id="newsNote"></p>
+        </div>
       </div>
     </section>
   </main>
@@ -307,9 +321,9 @@
         <h4>Shop</h4>
         <a href="shop.html">Catalog</a>
         <a href="shop.html?filter=best-seller">Best Seller</a>
-        <a href="shop.html?filter=heavy-metallic">Heavy Metallic</a>
-        <a href="shop.html?filter=light-metallic">Light Metallic</a>
-        <a href="shop.html?filter=world-cup">World Cup</a>
+        <a href="shop.html?filter=metallic">Metallic</a>
+        <a href="shop.html?filter=plastic">Plastic</a>
+        <a href="shop.html?filter=frameless">Frameless</a>
       </div>
       <div class="footer__col">
         <h4>Company</h4>
@@ -320,15 +334,15 @@
       <div class="footer__col">
         <h4>Follow</h4>
         <a href="https://www.instagram.com/apexstudiomalta/" target="_blank" rel="noopener">Instagram</a>
-        <a href="https://www.tiktok.com/@apexstudiomalta" target="_blank" rel="noopener">TikTok</a>
+        <a href="https://www.tiktok.com/@lumlaglasses.mt" target="_blank" rel="noopener">TikTok</a>
         <a href="https://www.facebook.com/profile.php?id=61591255014562" target="_blank" rel="noopener">Facebook</a>
       </div>
     </div>
     <div class="footer__bottom">
-      <p>© <span id="year"></span> LUMLA GLASSES. All rights reserved.</p>
+      <p>© <span id="year"></span> LUMLA GLASSES</p>
       <nav class="footer__legal">
-        <a href="privacy.html">Privacy policy</a>
-        <a href="terms.html">Terms of service</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
         <a href="cookies.html">Cookies</a>
       </nav>
       <p class="footer__pay">VISA · MASTERCARD · AMEX · PAYPAL · APPLE PAY</p>
@@ -346,7 +360,16 @@
       <p class="drawer__empty">Your cart is empty. Continue shopping.</p>
     </div>
     <div class="drawer__foot">
-      <div class="drawer__subtotal"><span>Subtotal</span><strong id="drawerTotal">€0</strong></div>
+      <form class="promo" id="promoForm">
+        <input type="text" id="promoInput" placeholder="Discount code" aria-label="Discount code" autocomplete="off" />
+        <button type="submit" class="promo__btn">Apply</button>
+      </form>
+      <p class="promo__note" id="promoNote"></p>
+      <div class="drawer__subtotal drawer__subtotal--sub"><span>Subtotal</span><span id="drawerSubtotal">€0</span></div>
+      <div class="drawer__subtotal drawer__subtotal--discount" id="drawerDiscountRow" hidden>
+        <span id="drawerDiscountLabel">Discount</span><span id="drawerDiscount">−€0</span>
+      </div>
+      <div class="drawer__subtotal"><span>Total</span><strong id="drawerTotal">€0</strong></div>
       <button class="btn btn--primary btn--full" id="checkoutBtn">Check out <span>→</span></button>
       <p class="drawer__note">Fast shipping · Secured by Stripe</p>
     </div>
@@ -529,6 +552,9 @@
           <div class="co__summary-totals">
             <div class="co__total-row">
               <span>Subtotal</span><span id="coSubtotal">€0</span>
+            </div>
+            <div class="co__total-row co__total-row--discount" id="coDiscountRow" hidden>
+              <span id="coDiscountLabel">Discount</span><span id="coDiscount">−€0</span>
             </div>
             <div class="co__total-row">
               <span>Shipping</span><span class="co__free">FREE</span>

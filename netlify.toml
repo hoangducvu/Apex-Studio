@@ -47,6 +47,11 @@
   status = 200
 
 [[redirects]]
+  from   = "/api/variant-groups"
+  to     = "/.netlify/functions/variant-groups"
+  status = 200
+
+[[redirects]]
   from   = "/api/products"
   to     = "/.netlify/functions/products"
   status = 200

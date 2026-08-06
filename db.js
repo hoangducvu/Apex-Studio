@@ -23,6 +23,9 @@ db.exec(`
     quantity   INTEGER DEFAULT 0,
     active     INTEGER DEFAULT 1,
     sort_order INTEGER DEFAULT 0,
+    -- frames sharing a variant_group are the same style in different colours
+    variant_group TEXT DEFAULT '',
+    color_label   TEXT DEFAULT '',
     created_at TEXT    DEFAULT (datetime('now'))
   );
 

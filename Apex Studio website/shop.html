@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Catalog — LUMLA GLASSES</title>
-  <meta name="description" content="Browse the full LUMLA GLASSES catalog — Heavy Metallic, Light Metallic and WORLD CUP collections. Prices in EUR." />
+  <meta name="description" content="Browse the full LUMLA GLASSES catalog — Metallic, Plastic and Frameless collections. Prices in EUR." />
   <link rel="icon" href="assets/lumla/logo.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://js.stripe.com/v3/" defer></script>
 </head>
@@ -46,7 +46,7 @@
   <!-- Mobile menu -->
   <div class="mobile-menu" id="mobileMenu">
     <a href="shop.html?filter=best-seller">Best Seller</a>
-    <a href="shop.html">Catalog</a>
+        <a href="shop.html">Catalog</a>
     <a href="contact.html">Contact</a>
     <a href="index.html#reviews">Reviews</a>
     <a href="#" id="mobileCart">Cart (<span id="mobileCartCount">0</span>)</a>
@@ -89,9 +89,9 @@
         <h4>Shop</h4>
         <a href="shop.html">Catalog</a>
         <a href="shop.html?filter=best-seller">Best Seller</a>
-        <a href="shop.html?filter=heavy-metallic">Heavy Metallic</a>
-        <a href="shop.html?filter=light-metallic">Light Metallic</a>
-        <a href="shop.html?filter=world-cup">World Cup</a>
+        <a href="shop.html?filter=metallic">Metallic</a>
+        <a href="shop.html?filter=plastic">Plastic</a>
+        <a href="shop.html?filter=frameless">Frameless</a>
       </div>
       <div class="footer__col">
         <h4>Company</h4>
@@ -102,10 +102,11 @@
       <div class="footer__col">
         <h4>Follow</h4>
         <a href="https://www.instagram.com/apexstudiomalta/" target="_blank" rel="noopener">Instagram</a>
-        <a href="https://www.tiktok.com/@apexstudiomalta" target="_blank" rel="noopener">TikTok</a>
+        <a href="https://www.tiktok.com/@lumlaglasses.mt" target="_blank" rel="noopener">TikTok</a>
         <a href="https://www.facebook.com/profile.php?id=61591255014562" target="_blank" rel="noopener">Facebook</a>
       </div>
     </div>
+    <div class="footer__giant" aria-hidden="true">LUMLA <em>GLASSES</em></div>
     <div class="footer__bottom">
       <p>© <span id="year"></span> LUMLA GLASSES. All rights reserved.</p>
       <nav class="footer__legal">
@@ -128,7 +129,16 @@
       <p class="drawer__empty">Your cart is empty. Continue shopping.</p>
     </div>
     <div class="drawer__foot">
-      <div class="drawer__subtotal"><span>Subtotal</span><strong id="drawerTotal">€0</strong></div>
+      <form class="promo" id="promoForm">
+        <input type="text" id="promoInput" placeholder="Discount code" aria-label="Discount code" autocomplete="off" />
+        <button type="submit" class="promo__btn">Apply</button>
+      </form>
+      <p class="promo__note" id="promoNote"></p>
+      <div class="drawer__subtotal drawer__subtotal--sub"><span>Subtotal</span><span id="drawerSubtotal">€0</span></div>
+      <div class="drawer__subtotal drawer__subtotal--discount" id="drawerDiscountRow" hidden>
+        <span id="drawerDiscountLabel">Discount</span><span id="drawerDiscount">−€0</span>
+      </div>
+      <div class="drawer__subtotal"><span>Total</span><strong id="drawerTotal">€0</strong></div>
       <button class="btn btn--primary btn--full" id="checkoutBtn">Check out <span>→</span></button>
       <p class="drawer__note">Fast shipping · Secured by Stripe</p>
     </div>
@@ -311,6 +321,9 @@
           <div class="co__summary-totals">
             <div class="co__total-row">
               <span>Subtotal</span><span id="coSubtotal">€0</span>
+            </div>
+            <div class="co__total-row co__total-row--discount" id="coDiscountRow" hidden>
+              <span id="coDiscountLabel">Discount</span><span id="coDiscount">−€0</span>
             </div>
             <div class="co__total-row">
               <span>Shipping</span><span class="co__free">FREE</span>

@@ -1,0 +1,61 @@
+{
+  "_readme": [
+    "EDITABLE PLAN — this file drives scripts/apply-catalog.js.",
+    "Change any 'name', 'category', 'variant_group' or 'color_label' below and re-run:",
+    "    node scripts/apply-catalog.js",
+    "It is idempotent: it only writes fields that differ from what is live.",
+    "Products sharing a 'variant_group' collapse into ONE storefront card with a",
+    "swatch per colour. Set variant_group to \"\" to make a product stand alone.",
+    "'was' is the original name, kept for reference only — the script ignores it.",
+    "To undo everything: node scripts/restore-catalog.js <backup-file.json>"
+  ],
+  "products": [
+    { "id": "prod_1783636868180_udli9", "was": "BLACK HEAVY METALLIC 2",          "name": "VECTOR BLACK",             "category": "Metallic", "variant_group": "Vector",     "color_label": "Black" },
+    { "id": "prod_1783465980388_hmgzs", "was": "SILVER HEAVY METALLIC 2",         "name": "VECTOR GUNMETAL",          "category": "Metallic", "variant_group": "Vector",     "color_label": "Gunmetal" },
+
+    { "id": "prod_1783636700900_t5hba", "was": "BLACK LIGHT METALLIC 1",          "name": "HALO BLACK SMOKE",         "category": "Metallic", "variant_group": "Halo",       "color_label": "Black Smoke" },
+    { "id": "prod_1783636733742_awy59", "was": "BROWN LIGHT METALLIC 1",          "name": "HALO BLACK BRONZE",        "category": "Metallic", "variant_group": "Halo",       "color_label": "Black Bronze" },
+
+    { "id": "prod_1783465839706_1lj7o", "was": "BROWN LIGHT METALLIC 1",          "name": "MERIDIAN GOLD BRONZE",     "category": "Metallic", "variant_group": "Meridian",   "color_label": "Gold Bronze" },
+    { "id": "prod_1783465494932_b0osl", "was": "MERCURY LIGHT METALLIC 1",        "name": "MERIDIAN MERCURY",         "category": "Metallic", "variant_group": "Meridian",   "color_label": "Mercury" },
+
+    { "id": "prod_1783636788385_uuow8", "was": "BLACK LIGHT METALLIC 2",          "name": "GLIDE BLACK SMOKE",        "category": "Metallic", "variant_group": "Glide",      "color_label": "Black Smoke" },
+    { "id": "prod_1783636762421_4dbqa", "was": "BLUE LIGHT METALLIC 1",           "name": "GLIDE ICE BLUE",           "category": "Metallic", "variant_group": "Glide",      "color_label": "Ice Blue" },
+
+    { "id": "prod_1783636829996_nhkxh", "was": "SILVER LIGHT METALLIC 3",         "name": "RELIC SILVER",             "category": "Metallic", "variant_group": "",           "color_label": "" },
+
+    { "id": "prod_1785680947793_z8yzs", "was": "BLACK SLIM METALLIC",             "name": "SABLE SILVER NOIR",        "category": "Metallic", "variant_group": "Sable",      "color_label": "Silver Noir" },
+    { "id": "prod_1785680845700_ufp6l", "was": "SLIM GOLD METALLIC",              "name": "SABLE GOLD AMBER",         "category": "Metallic", "variant_group": "Sable",      "color_label": "Gold Amber" },
+
+    { "id": "prod_1785680363743_5lpm7", "was": "GREY METALLIC",                   "name": "APEX GRAPHITE",            "category": "Metallic", "variant_group": "Apex",       "color_label": "Graphite" },
+    { "id": "prod_1785680410348_qwqmj", "was": "GREY METALLIC 2",                 "name": "APEX CHAMPAGNE",           "category": "Metallic", "variant_group": "Apex",       "color_label": "Champagne" },
+
+    { "id": "prod_1785679775287_105r6", "was": "GREY PLASTIC 3 DOTS",             "name": "RIVET BLACK BRONZE",       "category": "Plastic",  "variant_group": "Rivet",      "color_label": "Black Bronze" },
+    { "id": "prod_1785679596982_xz3jr", "was": "RED PLASTIC 3 DOTS",              "name": "RIVET BURGUNDY",           "category": "Plastic",  "variant_group": "Rivet",      "color_label": "Burgundy" },
+    { "id": "prod_1785679719345_nvom3", "was": "SMOOTH BLACK PLASTIC",            "name": "RIVET BLACK SMOKE",        "category": "Plastic",  "variant_group": "Rivet",      "color_label": "Black Smoke" },
+
+    { "id": "prod_1785680071879_ay0n6", "was": "SMOOTH BLACK PLASTIC",            "name": "CONTOUR BLACK",            "category": "Plastic",  "variant_group": "Contour",    "color_label": "Black" },
+    { "id": "prod_1785679843401_g7kcz", "was": "SMOOTH TRANSPARENT GREY PLASTIC", "name": "CONTOUR SMOKE CLEAR",      "category": "Plastic",  "variant_group": "Contour",    "color_label": "Smoke Clear" },
+    { "id": "prod_1785680106009_ft0tm", "was": "SMOOTH WHITE PLASTIC",            "name": "CONTOUR WHITE",            "category": "Plastic",  "variant_group": "Contour",    "color_label": "White" },
+
+    { "id": "prod_1785680211801_kjrvo", "was": "GREY SLIM PLASTIC",               "name": "SLIPSTREAM MATTE BLACK",   "category": "Plastic",  "variant_group": "Slipstream", "color_label": "Matte Black" },
+    { "id": "prod_1785680283985_2eolz", "was": "GREY SLIM PLASTIC 2",             "name": "SLIPSTREAM GREY",          "category": "Plastic",  "variant_group": "Slipstream", "color_label": "Grey" },
+    { "id": "prod_1785422009229_yr4q6", "was": "LEOPARD SLIM PLASTIC",            "name": "SLIPSTREAM LEOPARD",       "category": "Plastic",  "variant_group": "Slipstream", "color_label": "Leopard" },
+    { "id": "prod_1785680251516_xl40s", "was": "WHITE SLIM PLASTIC",              "name": "SLIPSTREAM WHITE RAINBOW", "category": "Plastic",  "variant_group": "Slipstream", "color_label": "White Rainbow" },
+
+    { "id": "prod_1785679682178_7byut", "was": "BROWN PLASTIC 2 DOTS",            "name": "RIDGE BLACK BRONZE",       "category": "Plastic",  "variant_group": "Ridge",      "color_label": "Black Bronze" },
+    { "id": "black-light-20",           "was": "BLACK PLASTIC 03",                "name": "RIDGE SLATE",              "category": "Plastic",  "variant_group": "Ridge",      "color_label": "Slate" },
+
+    { "id": "silver-light-20",          "was": "BLUE PLASTIC 2",                  "name": "BLOCK OCEAN",              "category": "Plastic",  "variant_group": "Block",      "color_label": "Ocean" },
+    { "id": "gold-light-20",            "was": "RED PLASTIC 2",                   "name": "BLOCK EMBER",              "category": "Plastic",  "variant_group": "Block",      "color_label": "Ember" },
+
+    { "id": "blue-light-20",            "was": "BLUE PLASTIC 1",                  "name": "DRIFT ICE BLUE",           "category": "Plastic",  "variant_group": "Drift",      "color_label": "Ice Blue" },
+    { "id": "heavy-chrome-01",          "was": "CHROME PLASTIC 1",                "name": "DRIFT PRISM",              "category": "Plastic",  "variant_group": "Drift",      "color_label": "Prism" },
+
+    { "id": "prod_1783465791728_osjad", "was": "BLACK PLASTIC SLIM 1",            "name": "BOLT BLACK",               "category": "Plastic",  "variant_group": "",           "color_label": "" }
+  ],
+  "_untouched": [
+    "prod_1783260776409_s0ol5 — 'DELETE TEST', no category, €1. Left alone; delete it in the admin panel if it is junk.",
+    "prod_1783256717708_tup0w — 'TEST FRAME', no category, €10. Same."
+  ]
+}

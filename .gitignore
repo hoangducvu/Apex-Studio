@@ -11,3 +11,6 @@ Thumbs.db
 
 # Local SQLite (legacy dev database)
 data/
+
+# Catalog snapshots written by scripts/apply-catalog.js (local operational data)
+catalog-backups/
