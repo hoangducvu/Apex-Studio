@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "",
+  "outputDirectory": "Apex Studio website",
+  "installCommand": "npm install --omit=dev",
+  "rewrites": [
+    { "source": "/products/:id", "destination": "/product.html?id=:id" },
+    { "source": "/admin", "destination": "/admin/index.html" }
+  ]
+}

@@ -58,10 +58,11 @@ async function hasVariantColumns() {
 
   if (!variants) {
     console.log(
-      "\n  ! variant_group / color_label columns do not exist yet.\n" +
-      "    Names and categories will still be applied.\n" +
-      "    To enable colour grouping, run supabase-migration-variants.sql in the\n" +
-      "    Supabase SQL editor, then re-run this script.\n"
+      "\n  i variant_group / color_label columns do not exist, so grouping goes to\n" +
+      "    the Supabase Storage fallback (site-meta/variant-groups.json) that\n" +
+      "    netlify/functions/variant-groups.js reads. Run\n" +
+      "    supabase-migration-variants.sql if you would rather it live in columns —\n" +
+      "    the columns take precedence automatically once they exist.\n"
     );
   }
 
@@ -99,6 +100,38 @@ async function hasVariantColumns() {
       if (!r.ok) throw new Error(`PATCH ${want.id} failed: ${r.status} ${await r.text()}`);
     }
     changed++;
+  }
+
+  // ── Grouping fallback ─────────────────────────────────────────────────────
+  // With no columns to write to, the grouping lives in a JSON document in
+  // Supabase Storage. Same shape variant-groups.js reads: { id: {group, color} }.
+  if (!variants) {
+    const BUCKET = "site-meta", FILE = "variant-groups.json";
+    const dl = await fetch(`${URL}/storage/v1/object/${BUCKET}/${FILE}`, { headers });
+    const map = dl.ok ? JSON.parse(await dl.text()) : {};
+    const before = JSON.stringify(map);
+
+    for (const want of plan.products) {
+      if (!byId.has(want.id)) continue;
+      const group = (want.variant_group || "").trim();
+      const color = (want.color_label || "").trim();
+      if (!group && !color) delete map[want.id];
+      else map[want.id] = { group, color };
+    }
+
+    if (JSON.stringify(map) === before) {
+      console.log(`\nGrouping: already up to date (${Object.keys(map).length} entries)`);
+    } else if (DRY) {
+      console.log(`\nGrouping: WOULD write ${Object.keys(map).length} entries to ${BUCKET}/${FILE}`);
+    } else {
+      const up = await fetch(`${URL}/storage/v1/object/${BUCKET}/${FILE}`, {
+        method: "POST",
+        headers: { ...headers, "Content-Type": "application/json", "x-upsert": "true" },
+        body: JSON.stringify(map, null, 1),
+      });
+      if (!up.ok) throw new Error(`Storage upload failed: ${up.status} ${await up.text()}`);
+      console.log(`\nGrouping: wrote ${Object.keys(map).length} entries to ${BUCKET}/${FILE}`);
+    }
   }
 
   console.log(

@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "LUMLA GLASSES — Premium Eyewear",
   "scripts": {
-    "dev": "netlify dev",
-    "start": "netlify dev"
+    "dev": "vercel dev",
+    "start": "vercel dev",
+    "dev:netlify": "netlify dev"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
