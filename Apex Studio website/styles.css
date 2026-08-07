@@ -386,6 +386,25 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   color: var(--c-text-soft); letter-spacing: 0.3em; font-size: 0.68rem; text-transform: uppercase;
   font-family: var(--font-tech);
 }
+
+/* ---------- Loading skeletons ----------
+   Shown while the catalog request is in flight, so the page settles once
+   instead of flashing the built-in frames and then the real ones. */
+.skeleton { position: relative; overflow: hidden; background: var(--c-paper-2); }
+.skeleton::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+  transform: translateX(-100%);
+  animation: skeleton-sweep 1.3s ease-in-out infinite;
+}
+@keyframes skeleton-sweep { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .skeleton::after { animation: none; } }
+
+.card--skeleton .card__media { aspect-ratio: 1 / 1; margin-bottom: 16px; }
+.pd__media.skeleton { aspect-ratio: 1 / 1; }
+.skeleton--line  { height: 12px; margin-bottom: 9px; }
+.skeleton--title { height: clamp(34px, 5vw, 54px); width: 78%; margin: 14px 0 18px; }
+.skeleton--block { height: 128px; margin-top: 20px; }
 .card { display: flex; flex-direction: column; }
 .card__media {
   position: relative; overflow: hidden;

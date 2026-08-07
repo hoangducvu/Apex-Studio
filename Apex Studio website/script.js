@@ -8,6 +8,13 @@ if (navigator.webdriver) document.documentElement.setAttribute("data-still", "")
 // ---- Product data (populated from API, with a static fallback) ----
 let PRODUCTS = [];
 
+/* Catalog status: "loading" until the request settles, then "ready" (live data)
+   or "failed" (API unreachable — the built-in catalog stands in).
+   The grid and the product page render skeletons while loading rather than
+   guessing from the fallback: showing it first is what made the wrong frames
+   flash up, and made a real product read "Frame not found" for a moment. */
+let CATALOG_STATE = "loading";
+
 // Fallback catalog — mirrors the franchise line-up so the grid always
 // renders when the API is unavailable (static hosting / offline).
 const FALLBACK_PRODUCTS = [
@@ -484,9 +491,43 @@ function bindLensPicker(product) {
   sync();
 }
 
+/* ── Loading skeletons ─────────────────────────────────────────────────── */
+function skeletonCards(n) {
+  return Array.from({ length: n }, () => `
+    <article class="card card--skeleton" aria-hidden="true">
+      <div class="card__media skeleton"></div>
+      <div class="card__body">
+        <div class="skeleton skeleton--line" style="width:72%"></div>
+        <div class="skeleton skeleton--line" style="width:40%"></div>
+        <div class="skeleton skeleton--line" style="width:28%"></div>
+      </div>
+    </article>`).join("");
+}
+
+function productDetailSkeleton() {
+  return `
+    <div class="pd__col" aria-hidden="true">
+      <div class="pd__media skeleton"></div>
+    </div>
+    <div class="pd__info" aria-hidden="true">
+      <div class="skeleton skeleton--line" style="width:26%"></div>
+      <div class="skeleton skeleton--line skeleton--title"></div>
+      <div class="skeleton skeleton--line" style="width:22%"></div>
+      <div class="skeleton skeleton--line" style="width:52%"></div>
+      <div class="skeleton skeleton--block"></div>
+    </div>`;
+}
+
 /* ── Product detail ────────────────────────────────────────────────────── */
 function renderProductDetail() {
   if (!pdContent) return;
+
+  // Don't accuse a real product of not existing before the catalog has landed
+  if (CATALOG_STATE === "loading") {
+    pdContent.innerHTML = productDetailSkeleton();
+    return;
+  }
+
   const id = currentProductId();
   const p = PRODUCTS.find((x) => x.id === id);
   if (!p) {
@@ -683,6 +724,19 @@ function showVariant(card, id) {
 
 function renderGrid() {
   if (!grid) return;
+
+  if (CATALOG_STATE === "loading") {
+    // The "You may also like" rail stays hidden until there's something real
+    if (isProductPage) {
+      const related = document.getElementById("pdRelated");
+      if (related) related.hidden = true;
+      grid.innerHTML = "";
+    } else {
+      grid.innerHTML = skeletonCards(filterBar ? 8 : 4);
+    }
+    return;
+  }
+
   let list;
   if (isProductPage) {
     // Detail page: grid becomes "You may also like" (everything but this style)
@@ -790,40 +844,45 @@ function renderCollectionArt() {
 }
 
 async function loadProducts() {
-  // Render the static catalog immediately so the grid never waits on the
-  // network, then swap in live data if the API answers in time.
-  PRODUCTS = FALLBACK_PRODUCTS;
   const want = new URLSearchParams(location.search).get("filter");
   if (want && filterBar) activeFilter = want;
-  renderFilters();
+
+  // Skeletons first — never the built-in catalog. Everything below renders
+  // once, when the real answer is in, so the shopper sees one state change
+  // instead of the wrong frames followed by the right ones.
   renderGrid();
   renderProductDetail();
 
   try {
     const sideload = (url) =>
-      fetch(url, { signal: AbortSignal.timeout(4000) })
+      fetch(url, { signal: AbortSignal.timeout(8000) })
         .then((r) => (r.ok ? r.json() : {}))
         .catch(() => ({}));
 
     const [res, groups, galleries] = await Promise.all([
-      fetch("/api/products", { signal: AbortSignal.timeout(4000) }),
+      fetch("/api/products", { signal: AbortSignal.timeout(8000) }),
       sideload("/api/variant-groups"),
       sideload("/api/product-images"),
     ]);
     VARIANT_MAP    = groups    && typeof groups    === "object" ? groups    : {};
     PRODUCT_IMAGES = galleries && typeof galleries === "object" ? galleries : {};
+
     const data = await res.json();
-    if (res.ok && Array.isArray(data) && data.length) {
-      PRODUCTS = data;
-      renderFilters();
-      renderGrid();
-      renderProductDetail();
-      renderCollectionArt();
-      renderCart();
-    }
+    if (!res.ok || !Array.isArray(data) || !data.length) throw new Error("empty catalog");
+    PRODUCTS = data;
+    CATALOG_STATE = "ready";
   } catch {
-    /* server offline or slow — static catalog already shown */
+    // API unreachable (offline, or served as plain static files) — stand the
+    // built-in catalog up so the shop still works.
+    PRODUCTS = FALLBACK_PRODUCTS;
+    CATALOG_STATE = "failed";
   }
+
+  renderFilters();
+  renderGrid();
+  renderProductDetail();
+  renderCollectionArt();
+  renderCart();
 }
 
 /* ============================================================

@@ -981,6 +981,9 @@
     // exist (supabase-migration-variants.sql / supabase-migration-images.sql).
     let VARIANT_MAP = {};
     let IMAGE_MAP   = {};
+    // Rows look products up by id rather than carrying a JSON copy of the whole
+    // product in an onclick attribute — smaller HTML, and immune to quotes in names.
+    let PRODUCTS_BY_ID = {};
 
     async function loadProducts() {
       const tbody = document.getElementById("productsTbody");
@@ -997,6 +1000,7 @@
           p.color_label   = p.color_label   || VARIANT_MAP[p.id]?.color || "";
           p.images        = galleryOf(p);
         });
+        PRODUCTS_BY_ID = Object.fromEntries(products.map(p => [p.id, p]));
         renderProducts(products);
       } catch(e) {
         tbody.innerHTML = `<tr class="loading-row"><td colspan="8">Error: ${e.message}</td></tr>`;
@@ -1043,7 +1047,8 @@
         return `<tr>
           <td class="td-img">
             <a href="${escHtml(p.image)}" target="_blank" rel="noopener" title="Open full image">
-              <img src="${escHtml(p.image)}" alt="${escHtml(p.name)}" onerror="this.style.opacity=0.2" />
+              <img src="${escHtml(p.image)}" alt="${escHtml(p.name)}" width="44" height="44"
+                   loading="lazy" decoding="async" onerror="this.style.opacity=0.2" />
             </a>
             ${p.images.length > 1 ? `<span style="display:block;text-align:center;margin-top:4px;font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted)">${p.images.length} imgs</span>` : ""}
           </td>
@@ -1064,7 +1069,7 @@
           <td>${badgeHtml}</td>
           <td>${statusHtml}</td>
           <td style="white-space:nowrap">
-            <button class="btn-edit" onclick='openEditModal(${JSON.stringify(p)})'>Edit</button>
+            <button class="btn-edit" onclick="openEditModalById('${escHtml(p.id)}')">Edit</button>
             <button class="btn-edit" onclick="copyImageLink(this, '${escHtml(p.image)}')" title="Copy the image URL">Copy link</button>
             <button class="btn-delete" onclick="deleteProduct('${escHtml(p.id)}', '${escHtml(p.name)}')">Delete</button>
           </td>
@@ -1304,6 +1309,11 @@
       renderGallery();
       uploadProgress.style.display = "none";
       modalOverlay.classList.add("open");
+    }
+
+    function openEditModalById(id) {
+      const p = PRODUCTS_BY_ID[id];
+      if (p) openEditModal(p);
     }
 
     function openEditModal(p) {
