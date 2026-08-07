@@ -497,18 +497,88 @@
       margin-right: 10px;
     }
 
-    .img-preview {
-      margin-top: 10px;
-      width: 80px;
-      height: 80px;
-      object-fit: contain;
+    /* ── IMAGE GALLERY ─────────────────────────────────────────────────── */
+    .img-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .img-tile {
+      position: relative;
+      width: 92px;
       background: var(--bg3);
       border: 1px solid var(--border);
       border-radius: 4px;
-      display: none;
+      padding: 6px;
+      cursor: grab;
+      transition: border-color 0.15s, opacity 0.15s;
     }
 
-    .img-preview.show { display: block; }
+    .img-tile:hover { border-color: var(--accent); }
+    .img-tile.dragging { opacity: 0.35; cursor: grabbing; }
+    .img-tile.drop-target { border-color: var(--accent); border-style: dashed; }
+
+    .img-tile img {
+      width: 100%;
+      height: 62px;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
+
+    .img-tile__role {
+      display: block;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.52rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: 5px;
+      color: var(--muted);
+    }
+
+    .img-tile__role.main  { color: var(--accent); }
+    .img-tile__role.hover { color: var(--success); }
+
+    .img-tile__bar {
+      display: flex;
+      justify-content: center;
+      gap: 3px;
+      margin-top: 5px;
+    }
+
+    .img-tile__bar button {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      line-height: 1;
+      width: 22px;
+      height: 20px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .img-tile__bar button:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+    .img-tile__bar button:disabled { opacity: 0.25; cursor: not-allowed; }
+    .img-tile__bar button.remove:hover { color: var(--danger); border-color: var(--danger); }
+
+    .img-empty {
+      color: var(--muted);
+      font-size: 0.78rem;
+      padding: 14px 0 4px;
+    }
+
+    .img-hint {
+      display: block;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.5;
+    }
 
     .upload-progress {
       margin-top: 8px;
@@ -714,10 +784,15 @@
         <input type="hidden" id="editId" />
 
         <div class="form-group">
-          <label for="fImage">Product Image</label>
-          <input type="file" id="fImage" accept="image/jpeg,image/png,image/webp" />
+          <label for="fImage">Product Images</label>
+          <input type="file" id="fImage" accept="image/jpeg,image/png,image/webp" multiple />
           <div class="upload-progress" id="uploadProgress">Uploading image…</div>
-          <img class="img-preview" id="imgPreview" src="" alt="Preview" />
+          <div class="img-list" id="imgList"></div>
+          <small class="img-hint">
+            Drag the tiles to reorder. The <b>first</b> image is the main shot;
+            the <b>second</b> is what shoppers see when they hover the product.
+            The rest show as extra thumbnails on the product page.
+          </small>
         </div>
 
         <div class="form-row">
@@ -807,7 +882,7 @@
     const editId        = document.getElementById("editId");
     const modalTitle    = document.getElementById("modalTitle");
     const saveBtn       = document.getElementById("saveBtn");
-    const imgPreview    = document.getElementById("imgPreview");
+    const imgList       = document.getElementById("imgList");
     const fImage        = document.getElementById("fImage");
     const uploadProgress = document.getElementById("uploadProgress");
 
@@ -902,25 +977,41 @@
     }
 
     /* ── Products ───────────────────────────────────────────────────────── */
-    // Colour grouping lives in Storage until the variant_group columns exist
+    // Colour grouping and image galleries live in Storage until their columns
+    // exist (supabase-migration-variants.sql / supabase-migration-images.sql).
     let VARIANT_MAP = {};
+    let IMAGE_MAP   = {};
 
     async function loadProducts() {
       const tbody = document.getElementById("productsTbody");
       try {
-        const [products, map] = await Promise.all([
+        const [products, map, galleries] = await Promise.all([
           apiFetch("/api/admin/products"),
           apiFetch("/api/variant-groups").catch(() => ({})),
+          apiFetch("/api/product-images").catch(() => ({})),
         ]);
-        VARIANT_MAP = map && typeof map === "object" ? map : {};
+        VARIANT_MAP = map       && typeof map       === "object" ? map       : {};
+        IMAGE_MAP   = galleries && typeof galleries === "object" ? galleries : {};
         products.forEach(p => {
           p.variant_group = p.variant_group || VARIANT_MAP[p.id]?.group || "";
           p.color_label   = p.color_label   || VARIANT_MAP[p.id]?.color || "";
+          p.images        = galleryOf(p);
         });
         renderProducts(products);
       } catch(e) {
         tbody.innerHTML = `<tr class="loading-row"><td colspan="8">Error: ${e.message}</td></tr>`;
       }
+    }
+
+    // A product's gallery, main shot first — column if it exists, else the
+    // Storage map, else just the single `image`.
+    function galleryOf(p) {
+      const raw = Array.isArray(p.images) && p.images.length
+        ? p.images
+        : IMAGE_MAP[p.id] || [];
+      return [p.image, ...raw]
+        .map(s => String(s || "").trim())
+        .filter((s, i, a) => s && a.indexOf(s) === i);
     }
 
     function renderProducts(data) {
@@ -954,6 +1045,7 @@
             <a href="${escHtml(p.image)}" target="_blank" rel="noopener" title="Open full image">
               <img src="${escHtml(p.image)}" alt="${escHtml(p.name)}" onerror="this.style.opacity=0.2" />
             </a>
+            ${p.images.length > 1 ? `<span style="display:block;text-align:center;margin-top:4px;font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted)">${p.images.length} imgs</span>` : ""}
           </td>
           <td class="td-name">
             ${escHtml(p.name)}
@@ -1078,12 +1170,138 @@
       }
     }
 
+    /* ── Image gallery editor ───────────────────────────────────────────────
+     * The order of this list IS the storefront order: [0] is the main shot,
+     * [1] is revealed on hover, the rest become extra thumbnails.
+     */
+    let gallery = [];   // array of image URLs, in display order
+    let dragFrom = -1;  // index being dragged
+
+    function renderGallery() {
+      if (!gallery.length) {
+        imgList.innerHTML = `<div class="img-empty">No images yet — choose one or more files above.</div>`;
+        return;
+      }
+
+      imgList.innerHTML = gallery.map((url, i) => {
+        const role = i === 0 ? "Main" : i === 1 ? "On hover" : `#${i + 1}`;
+        const roleClass = i === 0 ? "main" : i === 1 ? "hover" : "";
+        return `
+          <div class="img-tile" draggable="true" data-index="${i}" title="Drag to reorder">
+            <img src="${escHtml(url)}" alt="" onerror="this.style.opacity=0.2" />
+            <span class="img-tile__role ${roleClass}">${role}</span>
+            <div class="img-tile__bar">
+              <button type="button" onclick="moveImage(${i}, -1)" ${i === 0 ? "disabled" : ""} title="Move earlier">←</button>
+              <button type="button" onclick="moveImage(${i}, 1)" ${i === gallery.length - 1 ? "disabled" : ""} title="Move later">→</button>
+              <button type="button" class="remove" onclick="removeImage(${i})" title="Remove image">✕</button>
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    function moveImage(index, delta) {
+      const to = index + delta;
+      if (to < 0 || to >= gallery.length) return;
+      const [item] = gallery.splice(index, 1);
+      gallery.splice(to, 0, item);
+      renderGallery();
+    }
+
+    function removeImage(index) {
+      gallery.splice(index, 1);
+      renderGallery();
+    }
+
+    /* Drag to reorder */
+    imgList.addEventListener("dragstart", (e) => {
+      const tile = e.target.closest(".img-tile");
+      if (!tile) return;
+      dragFrom = Number(tile.dataset.index);
+      tile.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      // Firefox needs data on the transfer for the drag to start at all
+      e.dataTransfer.setData("text/plain", String(dragFrom));
+    });
+
+    imgList.addEventListener("dragover", (e) => {
+      const tile = e.target.closest(".img-tile");
+      if (!tile || dragFrom < 0) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      imgList.querySelectorAll(".img-tile").forEach(t =>
+        t.classList.toggle("drop-target", t === tile && Number(t.dataset.index) !== dragFrom));
+    });
+
+    imgList.addEventListener("drop", (e) => {
+      const tile = e.target.closest(".img-tile");
+      if (!tile || dragFrom < 0) return;
+      e.preventDefault();
+      const to = Number(tile.dataset.index);
+      if (to !== dragFrom) {
+        const [item] = gallery.splice(dragFrom, 1);
+        gallery.splice(to, 0, item);
+      }
+      dragFrom = -1;
+      renderGallery();
+    });
+
+    imgList.addEventListener("dragend", () => {
+      dragFrom = -1;
+      renderGallery();
+    });
+
+    /* Upload one file to Supabase Storage, returning its public URL */
+    async function uploadImage(file) {
+      const { signedUrl, publicUrl } = await apiFetch("/api/admin/upload-url", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ filename: file.name, contentType: file.type }),
+      });
+
+      const res = await fetch(signedUrl, {
+        method:  "PUT",
+        body:    file,
+        headers: { "Content-Type": file.type },
+      });
+      if (!res.ok) throw new Error("Storage upload failed");
+      return publicUrl;
+    }
+
+    // Files upload as soon as they're picked, so the tiles below are always
+    // the real, reorderable gallery rather than a pending-save preview.
+    fImage.addEventListener("change", async () => {
+      const files = [...fImage.files];
+      if (!files.length) return;
+      fImage.value = "";
+
+      saveBtn.disabled = true;
+      uploadProgress.style.display = "block";
+
+      try {
+        for (let i = 0; i < files.length; i++) {
+          uploadProgress.textContent = files.length > 1
+            ? `Uploading image ${i + 1} of ${files.length}…`
+            : "Uploading image…";
+          const url = await uploadImage(files[i]);
+          if (!gallery.includes(url)) gallery.push(url);
+          renderGallery();
+        }
+      } catch (err) {
+        alert("Image upload failed: " + err.message);
+      } finally {
+        uploadProgress.style.display = "none";
+        uploadProgress.textContent = "Uploading image…";
+        saveBtn.disabled = false;
+      }
+    });
+
     /* ── Modal ──────────────────────────────────────────────────────────── */
     function openAddModal() {
       editId.value = "";
       modalTitle.textContent = "Add Product";
       productForm.reset();
-      imgPreview.classList.remove("show");
+      gallery = [];
+      renderGallery();
       uploadProgress.style.display = "none";
       modalOverlay.classList.add("open");
     }
@@ -1100,12 +1318,8 @@
       document.getElementById("fVariantGroup").value = p.variant_group || "";
       document.getElementById("fColorLabel").value   = p.color_label || "";
       document.getElementById("fActive").checked  = !!p.active;
-      if (p.image) {
-        imgPreview.src = p.image;
-        imgPreview.classList.add("show");
-      } else {
-        imgPreview.classList.remove("show");
-      }
+      gallery = galleryOf(p);
+      renderGallery();
       fImage.value = "";
       uploadProgress.style.display = "none";
       modalOverlay.classList.add("open");
@@ -1122,59 +1336,24 @@
       if (e.target === modalOverlay) closeModal();
     });
 
-    fImage.addEventListener("change", () => {
-      const file = fImage.files[0];
-      if (file) {
-        imgPreview.src = URL.createObjectURL(file);
-        imgPreview.classList.add("show");
-      }
-    });
-
     /* ── Form submit ────────────────────────────────────────────────────── */
     productForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+
+      // Images upload as they're picked, so by now the gallery is just URLs.
+      if (!gallery.length) {
+        alert("Add at least one product image.");
+        return;
+      }
+
       saveBtn.disabled = true;
       saveBtn.textContent = "Saving…";
 
       const id     = editId.value;
       const isEdit = !!id;
-      const file   = fImage.files[0];
-      let imageUrl = null;
 
-      // Upload image to Supabase Storage if a file was selected
-      if (file) {
-        try {
-          uploadProgress.style.display = "block";
-          saveBtn.textContent = "Uploading image…";
-
-          // Get signed upload URL from server
-          const { signedUrl, publicUrl } = await apiFetch("/api/admin/upload-url", {
-            method:  "POST",
-            headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify({ filename: file.name, contentType: file.type }),
-          });
-
-          // PUT file directly to Supabase Storage
-          const uploadRes = await fetch(signedUrl, {
-            method:  "PUT",
-            body:    file,
-            headers: { "Content-Type": file.type },
-          });
-
-          if (!uploadRes.ok) throw new Error("Storage upload failed");
-          imageUrl = publicUrl;
-          uploadProgress.style.display = "none";
-          saveBtn.textContent = "Saving…";
-        } catch (err) {
-          uploadProgress.style.display = "none";
-          alert("Image upload failed: " + err.message);
-          saveBtn.disabled = false;
-          saveBtn.textContent = "Save Product";
-          return;
-        }
-      }
-
-      // Build product payload
+      // Build product payload — gallery order is the storefront order, and
+      // `image` mirrors the first entry for everything still reading it.
       const payload = {
         name:       document.getElementById("fName").value,
         category:   document.getElementById("fCategory").value,
@@ -1185,7 +1364,8 @@
         variant_group: document.getElementById("fVariantGroup").value,
         color_label:   document.getElementById("fColorLabel").value,
         active:     document.getElementById("fActive").checked,
-        ...(imageUrl ? { image: imageUrl } : {}),
+        image:      gallery[0],
+        images:     gallery.slice(),
       };
 
       try {
@@ -1197,20 +1377,33 @@
           body:    JSON.stringify(payload),
         });
 
-        // Mirror the colour grouping into the Storage-backed map, so it works
-        // whether or not the variant_group columns exist on the table yet.
+        const savedId = (saved && saved.id) || id;
+
+        // Mirror the colour grouping and gallery order into their
+        // Storage-backed maps, so both work whether or not the matching
+        // columns exist on the table yet.
         try {
           await apiFetch("/api/variant-groups", {
             method:  "POST",
             headers: { "Content-Type": "application/json" },
             body:    JSON.stringify({
-              id:    (saved && saved.id) || id,
+              id:    savedId,
               group: payload.variant_group,
               color: payload.color_label,
             }),
           });
         } catch (e) {
           console.warn("Colour group not saved:", e.message);
+        }
+
+        try {
+          await apiFetch("/api/product-images", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ id: savedId, images: payload.images }),
+          });
+        } catch (e) {
+          console.warn("Image order not saved:", e.message);
         }
 
         closeModal();

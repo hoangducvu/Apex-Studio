@@ -22,10 +22,10 @@ const FALLBACK_PRODUCTS = [
    LENS CUSTOMISATION
    Surcharge is added on top of the frame price, per pair.
    ------------------------------------------------------------
-   👉 SWAP THE COLOUR LIST BELOW for your final lens palette.
-   The same list must also be mirrored in
-   netlify/functions/create-payment-intent.js (LENS_COLORS)
-   so the server accepts the values.
+   The surcharges are mirrored in
+   netlify/functions/create-payment-intent.js (LENS_OPTIONS) — the server
+   always recalculates the charge. Colour *names* are passed through freely,
+   so this list can change without a server change.
    ============================================================ */
 const LENS_OPTIONS = {
   none:   { label: "Standard lens — as pictured",       price: 0,  colors: 0 },
@@ -33,10 +33,29 @@ const LENS_OPTIONS = {
   duo:    { label: "Custom lens — 2 colours / gradient", price: 35, colors: 2 },
 };
 
+/* ⚠️ PLACEHOLDER HEX VALUES — these drive both the swatches and the live
+   preview, so they should be sampled from photographs of the real lenses
+   (shot flat on white paper in indirect daylight) rather than eyeballed.
+   Swap the `hex` values only; the `name` strings are what the order records. */
 const LENS_COLORS = [
-  "Black", "Smoke Grey", "Silver Mirror", "Gold Mirror", "Bronze",
-  "Blue", "Ice Blue", "Green", "Purple", "Pink", "Red", "Orange", "Clear",
+  { name: "Black",         hex: "#1c1c1e" },
+  { name: "Smoke Grey",    hex: "#6d6d72" },
+  { name: "Silver Mirror", hex: "#b6bec7" },
+  { name: "Gold Mirror",   hex: "#d2a336" },
+  { name: "Bronze",        hex: "#8a5a2b" },
+  { name: "Blue",          hex: "#1f6fd0" },
+  { name: "Ice Blue",      hex: "#8fc7e8" },
+  { name: "Green",         hex: "#1f8a4c" },
+  { name: "Purple",        hex: "#6b2fb5" },
+  { name: "Pink",          hex: "#e0559b" },
+  { name: "Red",           hex: "#c02028" },
+  { name: "Orange",        hex: "#f07f1a" },
+  { name: "Clear",         hex: "#e6edf2" },
 ];
+
+function lensHex(name) {
+  return (LENS_COLORS.find((c) => c.name === name) || LENS_COLORS[0]).hex;
+}
 
 const DEFAULT_LENS = { type: "none", colors: [] };
 
@@ -131,16 +150,234 @@ function currentProductId() {
 
 function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
 
-// Resolve product image to a root-absolute URL so it works from any page
+/* ============================================================
+   PRODUCT IMAGES  —  ordered gallery, managed in the admin panel
+   ------------------------------------------------------------
+   Each product carries an ordered list of shots:
+     [0] the main image
+     [1] revealed when the shopper hovers the card / main image
+     [2…] extra thumbnails on the product page
+   Prefers the products.images column and falls back to the
+   Storage-backed map when that column doesn't exist yet.
+   ============================================================ */
+let PRODUCT_IMAGES = {};
+
+// Resolve an image path to a root-absolute URL so it works from any page
 // depth (the detail pages live at /products/<id>).
-function imgUrl(p) {
-  const src = p?.image || "";
-  return /^(https?:)?\/\//.test(src) || src.startsWith("/") ? src : "/" + src;
+function resolveUrl(src) {
+  const s = String(src || "");
+  return /^(https?:)?\/\//.test(s) || s.startsWith("/") ? s : "/" + s;
+}
+
+// The full gallery, main shot first, always at least one entry.
+function imagesOf(p) {
+  if (!p) return [];
+  const raw = Array.isArray(p.images) && p.images.length
+    ? p.images
+    : PRODUCT_IMAGES[p.id] || [];
+  const list = [p.image, ...raw]
+    .map(resolveUrl)
+    .filter((s, i, a) => s && s !== "/" && a.indexOf(s) === i);
+  return list.length ? list : [resolveUrl(p.image)];
+}
+
+function imgUrl(p) { return imagesOf(p)[0] || ""; }
+
+// The shot to reveal on hover — null when there's only one image.
+function hoverUrl(p) { return imagesOf(p)[1] || null; }
+
+/* ============================================================
+   LIVE LENS RECOLOURING
+   ------------------------------------------------------------
+   The product shots are photographed with a tinted lens, and that lens is the
+   only strongly saturated thing in the picture — the frames are black, the
+   background white. So the lens can be repainted by shifting the hue of every
+   saturated pixel while keeping that pixel's own lightness, which preserves
+   the reflections, the glass falloff and the gradient exactly.
+
+   Two colours are mapped across the lens's own light-to-dark ramp, which in
+   these shots runs top to bottom — giving a real gradient lens.
+
+   Frames whose lens is photographed near-neutral (grey/clear) can't be
+   separated this way; they simply render unchanged.
+   ============================================================ */
+const LENS_MIN_SATURATION = 0.18;
+// Each render is a full-size data URL (~200KB), and duo mode has 13×13
+// combinations — so the cache is bounded and evicts oldest-first.
+const LENS_CACHE_LIMIT = 24;
+const lensRenderCache = new Map();
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h;
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+  else if (max === g) h = ((b - r) / d + 2) / 6;
+  else h = ((r - g) / d + 4) / 6;
+  return [h, s, l];
+}
+
+function hslToRgb(h, s, l) {
+  if (s <= 0) { const v = Math.round(l * 255); return [v, v, v]; }
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const f = (t) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  return [f(h + 1 / 3), f(h), f(h - 1 / 3)].map((v) => Math.round(v * 255));
+}
+
+function hexToHsl(hex) {
+  const p = hex.replace("#", "").match(/../g).map((v) => parseInt(v, 16));
+  return rgbToHsl(p[0], p[1], p[2]);
+}
+
+// Hue is a circle — blend the short way round, so purple→orange travels
+// through red rather than all the way back through blue and green.
+function lerpHue(a, b, t) {
+  let d = b - a;
+  if (d > 0.5) d -= 1;
+  if (d < -0.5) d += 1;
+  return (a + d * t + 1) % 1;
+}
+
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    // Product shots are served from Supabase Storage; without this the canvas
+    // is tainted and the pixels can't be read back.
+    img.crossOrigin = "anonymous";
+    img.onload  = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+/**
+ * Repaints the lens in `src` and resolves to a data URL.
+ * `colors` is one hex (flat tint) or two (gradient, dark end first).
+ * Resolves to the original `src` whenever the recolour can't be done —
+ * a tainted canvas, a neutral lens, a broken image.
+ */
+async function renderLens(src, colors) {
+  const stops = colors.filter(Boolean).map(lensHex);
+  if (!src || !stops.length) return src;
+
+  const key = src + "|" + stops.join(",");
+  if (lensRenderCache.has(key)) {
+    // Refresh recency so the colours being explored stay cached
+    const hit = lensRenderCache.get(key);
+    lensRenderCache.delete(key);
+    lensRenderCache.set(key, hit);
+    return hit;
+  }
+
+  const promise = (async () => {
+    let img;
+    try { img = await loadImage(src); } catch { return src; }
+
+    const canvas = document.createElement("canvas");
+    canvas.width  = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0);
+
+    let px;
+    try {
+      px = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    } catch {
+      return src; // cross-origin without CORS headers — leave the shot alone
+    }
+    const d = px.data;
+
+    // Pass 1 — find the lens and measure its own lightness/saturation spread
+    let sumS = 0, sumL = 0, n = 0;
+    const hist = new Uint32Array(256);
+    const hsl = new Float32Array(d.length / 4 * 3);
+    for (let i = 0, j = 0; i < d.length; i += 4, j += 3) {
+      if (d[i + 3] < 8) continue;
+      const [h, s, l] = rgbToHsl(d[i], d[i + 1], d[i + 2]);
+      hsl[j] = h; hsl[j + 1] = s; hsl[j + 2] = l;
+      if (s >= LENS_MIN_SATURATION && l > 0.05 && l < 0.97) {
+        hist[(l * 255) | 0]++;
+        sumS += s; sumL += l; n++;
+      }
+    }
+    if (n < 200) return src; // no separable lens in this shot
+
+    const avgS = sumS / n, avgL = sumL / n;
+    // Span the ramp across the bulk of the lens, not its extremes: a handful of
+    // specular highlights and dark rim pixels would otherwise squash every real
+    // pixel into the middle of the gradient and flatten it to one colour.
+    const percentile = (frac) => {
+      let seen = 0;
+      const want = n * frac;
+      for (let i = 0; i < 256; i++) {
+        seen += hist[i];
+        if (seen >= want) return i / 255;
+      }
+      return 1;
+    };
+    // A tight band leaves both ends of a two-colour lens muddy, because almost
+    // every pixel sits mid-ramp. Clamping the outer ~15% to the pure endpoint
+    // colours is what makes a gradient actually read as "this colour into that".
+    const lo = percentile(0.15), hi = percentile(0.85);
+    const [darkH, darkS, darkL]    = hexToHsl(stops[0]);
+    const [lightH, lightS, lightL] = hexToHsl(stops[1] || stops[0]);
+    // Shift the whole lens toward the target's brightness, so a black lens
+    // reads dark and an ice-blue one reads light, without flattening the glass.
+    const lOffset = ((darkL + lightL) / 2 - avgL) * 0.7;
+
+    // Pass 2 — repaint
+    for (let i = 0, j = 0; i < d.length; i += 4, j += 3) {
+      const s = hsl[j + 1], l = hsl[j + 2];
+      if (d[i + 3] < 8 || s < LENS_MIN_SATURATION || l <= 0.05 || l >= 0.97) continue;
+      const t = hi > lo ? clamp01((l - lo) / (hi - lo)) : 0;
+      const [r, g, b] = hslToRgb(
+        lerpHue(darkH, lightH, t),
+        clamp01((darkS + (lightS - darkS) * t) * (s / avgS)),
+        clamp01(l + lOffset)
+      );
+      d[i] = r; d[i + 1] = g; d[i + 2] = b;
+    }
+
+    ctx.putImageData(px, 0, 0);
+    try { return canvas.toDataURL("image/png"); } catch { return src; }
+  })();
+
+  lensRenderCache.set(key, promise);
+  if (lensRenderCache.size > LENS_CACHE_LIMIT) {
+    lensRenderCache.delete(lensRenderCache.keys().next().value);
+  }
+  return promise;
 }
 
 /* ── Lens picker markup (product detail page) ───────────────────────────── */
+// A row of real colour chips. The chosen name lives in a hidden input, so
+// readLens() stays a plain value read and the order still records the name.
+function lensSwatchRow(inputId, selected) {
+  return `
+    <div class="lens__swatches" data-swatch-row="${inputId}">
+      ${LENS_COLORS.map((c) => `
+        <button type="button" class="lens__swatch${c.name === selected ? " is-on" : ""}"
+                data-color="${esc(c.name)}" style="--sw:${esc(c.hex)}"
+                title="${esc(c.name)}" aria-label="${esc(c.name)}"></button>`).join("")}
+    </div>
+    <input type="hidden" id="${inputId}" value="${esc(selected)}" />`;
+}
+
 function lensPickerHtml() {
-  const colorOpts = LENS_COLORS.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
   const opts = Object.entries(LENS_OPTIONS).map(([key, o]) => `
     <label class="lens__opt${key === "none" ? " is-on" : ""}" data-lens-opt="${key}">
       <input type="radio" name="lensType" value="${key}"${key === "none" ? " checked" : ""} />
@@ -148,21 +385,27 @@ function lensPickerHtml() {
       <span class="lens__opt-price">${o.price ? "+" + fmt(o.price) : "Included"}</span>
     </label>`).join("");
 
+  const first  = LENS_COLORS[0].name;
+  const second = (LENS_COLORS[6] || LENS_COLORS[0]).name;
+
   return `
     <div class="lens" id="pdLens">
       <div class="lens__title">Customise your lenses</div>
       <div class="lens__opts">${opts}</div>
       <div class="lens__colors" id="pdLensColors" hidden>
         <div class="lens__color">
-          <label for="pdLensColor1">Lens colour</label>
-          <select id="pdLensColor1">${colorOpts}</select>
+          <label>Lens colour — <span data-swatch-name="pdLensColor1">${esc(first)}</span></label>
+          ${lensSwatchRow("pdLensColor1", first)}
         </div>
         <div class="lens__color" id="pdLensColor2Wrap" hidden>
-          <label for="pdLensColor2">Second colour</label>
-          <select id="pdLensColor2">${colorOpts}</select>
+          <label>Fades into — <span data-swatch-name="pdLensColor2">${esc(second)}</span></label>
+          ${lensSwatchRow("pdLensColor2", second)}
         </div>
       </div>
-      <p class="lens__note">Custom lenses are made to order — add 3–5 days to delivery.</p>
+      <p class="lens__note">
+        The preview is generated from this frame's own photo, so it shows the real
+        shape and finish. Custom lenses are made to order — add 3–5 days to delivery.
+      </p>
     </div>`;
 }
 
@@ -177,12 +420,51 @@ function readLens() {
   return { type, colors };
 }
 
+// The uncoloured shot the preview is generated from — follows the gallery.
+let pdBaseShot = "";
+
+// Repaint the main image for the lens colours currently selected. Guarded by a
+// token so a slow render can never overwrite a newer selection.
+let pdLensToken = 0;
+async function applyLensPreview() {
+  const main = document.getElementById("pdMainImg");
+  if (!main || !pdBaseShot) return;
+
+  const lens = readLens();
+  const need = LENS_OPTIONS[lens.type]?.colors || 0;
+  const token = ++pdLensToken;
+
+  const src = need === 0
+    ? pdBaseShot
+    : await renderLens(pdBaseShot, lens.colors.slice(0, need));
+
+  if (token !== pdLensToken) return; // a newer selection already won
+  main.src = src;
+  // Colour-variant hover previews restore from this, so keep it in step.
+  main.dataset.default = src;
+}
+
 function bindLensPicker(product) {
   const el = document.getElementById("pdLens");
   if (!el) return;
   const colorsWrap = document.getElementById("pdLensColors");
   const secondWrap = document.getElementById("pdLensColor2Wrap");
   const priceEl = document.querySelector(".pd__price");
+
+  // Colour chips write into their hidden input, then re-run the same sync the
+  // radio buttons use.
+  el.addEventListener("click", (e) => {
+    const chip = e.target.closest(".lens__swatch");
+    if (!chip) return;
+    e.preventDefault();
+    const row = chip.closest("[data-swatch-row]");
+    const id  = row.dataset.swatchRow;
+    document.getElementById(id).value = chip.dataset.color;
+    row.querySelectorAll(".lens__swatch").forEach((s) => s.classList.toggle("is-on", s === chip));
+    const nameEl = el.querySelector(`[data-swatch-name="${id}"]`);
+    if (nameEl) nameEl.textContent = chip.dataset.color;
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  });
 
   const sync = () => {
     const lens = readLens();
@@ -196,6 +478,7 @@ function bindLensPicker(product) {
       priceEl.innerHTML = fmt(total) +
         (lensPrice(lens) ? ` <span class="pd__price-add">incl. ${fmt(lensPrice(lens))} lens</span>` : "");
     }
+    applyLensPreview();
   };
   el.addEventListener("change", sync);
   sync();
@@ -236,10 +519,26 @@ function renderProductDetail() {
       </div>
     </div>` : "";
 
+  // Gallery — main shot plus every extra image, in the admin panel's order
+  const shots = imagesOf(p);
+  pdBaseShot = shots[0];
+  const galleryHtml = shots.length > 1 ? `
+    <div class="pd__gallery" id="pdGallery">
+      ${shots.map((src, i) => `
+        <button type="button" class="pd__thumb${i === 0 ? " is-active" : ""}"
+                data-shot="${esc(src)}" aria-label="View image ${i + 1} of ${shots.length}">
+          <img src="${esc(src)}" alt="" loading="lazy" />
+        </button>`).join("")}
+    </div>` : "";
+
   pdContent.innerHTML = `
-    <div class="pd__media">
-      ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}">${esc(p.badge)}</span>` : ""}
-      <img src="${imgUrl(p)}" alt="${esc(p.name)} glasses" id="pdMainImg" data-default="${esc(imgUrl(p))}" />
+    <div class="pd__col">
+      <div class="pd__media">
+        ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}">${esc(p.badge)}</span>` : ""}
+        <img src="${esc(shots[0])}" alt="${esc(p.name)} glasses" id="pdMainImg" data-default="${esc(shots[0])}" />
+        ${shots[1] ? `<img class="pd__media-alt" src="${esc(shots[1])}" alt="" aria-hidden="true" id="pdAltImg" />` : ""}
+      </div>
+      ${galleryHtml}
     </div>
     <div class="pd__info">
       <p class="pd__cat">${esc(p.category || "Eyewear")}</p>
@@ -274,6 +573,28 @@ function renderProductDetail() {
         <li><span>Shipping</span> Fast EU shipping · prices in EUR €</li>
       </ul>
     </div>`;
+
+  // Gallery thumbnails — click to make one the main shot. The hover overlay
+  // always previews whatever comes next in the admin panel's order.
+  const gallery = document.getElementById("pdGallery");
+  if (gallery) {
+    gallery.addEventListener("click", (e) => {
+      const thumb = e.target.closest(".pd__thumb");
+      if (!thumb) return;
+      const src  = thumb.dataset.shot;
+      const alt  = document.getElementById("pdAltImg");
+      // Re-run the lens preview against the newly chosen shot
+      pdBaseShot = src;
+      applyLensPreview();
+      if (alt) {
+        const next = shots[shots.indexOf(src) + 1];
+        alt.hidden = !next;
+        if (next) alt.src = next;
+      }
+      gallery.querySelectorAll(".pd__thumb").forEach((t) =>
+        t.classList.toggle("is-active", t === thumb));
+    });
+  }
 
   if (!soldOut) {
     bindLensPicker(p);
@@ -312,6 +633,8 @@ function cardHtml(group) {
         ${p.quantity === 0 ? `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock>SOLD OUT</span>` : p.quantity <= 5 ? `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock>LOW STOCK</span>` : `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock hidden></span>`}
         <a class="card__media-link" href="/products/${encodeURIComponent(p.id)}" data-card-link aria-label="View ${esc(p.name)}">
           <img src="${imgUrl(p)}" alt="${esc(p.name)} glasses" data-card-img loading="lazy" />
+          <img class="card__media-alt" src="${esc(hoverUrl(p) || "")}" alt="" aria-hidden="true"
+               data-card-img-alt loading="lazy" ${hoverUrl(p) ? "" : "hidden"} />
         </a>
         ${p.quantity > 0 ? `<button class="card__add" data-add="${esc(p.id)}" data-card-add>Add to cart +</button>` : `<button class="card__add" data-card-add hidden></button>`}
       </div>
@@ -333,6 +656,11 @@ function showVariant(card, id) {
   if (!p) return;
   const set = (sel, fn) => { const el = card.querySelector(sel); if (el) fn(el); };
   set("[data-card-img]", (el) => { el.src = imgUrl(p); el.alt = `${p.name} glasses`; });
+  set("[data-card-img-alt]", (el) => {
+    const alt = hoverUrl(p);
+    el.hidden = !alt;
+    if (alt) el.src = alt;
+  });
   set("[data-card-name]", (el) => { el.textContent = styleName(p); });
   set("[data-card-cat]", (el) => { el.textContent = colorOf(p); });
   set("[data-card-price]", (el) => { el.textContent = fmt(p.price); });
@@ -472,13 +800,18 @@ async function loadProducts() {
   renderProductDetail();
 
   try {
-    const [res, groups] = await Promise.all([
-      fetch("/api/products", { signal: AbortSignal.timeout(4000) }),
-      fetch("/api/variant-groups", { signal: AbortSignal.timeout(4000) })
+    const sideload = (url) =>
+      fetch(url, { signal: AbortSignal.timeout(4000) })
         .then((r) => (r.ok ? r.json() : {}))
-        .catch(() => ({})),
+        .catch(() => ({}));
+
+    const [res, groups, galleries] = await Promise.all([
+      fetch("/api/products", { signal: AbortSignal.timeout(4000) }),
+      sideload("/api/variant-groups"),
+      sideload("/api/product-images"),
     ]);
-    VARIANT_MAP = groups && typeof groups === "object" ? groups : {};
+    VARIANT_MAP    = groups    && typeof groups    === "object" ? groups    : {};
+    PRODUCT_IMAGES = galleries && typeof galleries === "object" ? galleries : {};
     const data = await res.json();
     if (res.ok && Array.isArray(data) && data.length) {
       PRODUCTS = data;

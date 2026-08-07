@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS products (
   category      TEXT        DEFAULT '',
   price         FLOAT       NOT NULL,
   image         TEXT        DEFAULT '',
+  -- ordered gallery: [0] main shot (mirrors `image`), [1] shown on hover
+  images        JSONB       DEFAULT '[]'::jsonb,
   badge         TEXT        DEFAULT '',
   quantity      INTEGER     DEFAULT 0,
   active        BOOLEAN     DEFAULT TRUE,
@@ -18,7 +20,8 @@ CREATE TABLE IF NOT EXISTS products (
   created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Existing installs: see supabase-migration-variants.sql
+-- Existing installs: see supabase-migration-variants.sql (variant_group,
+-- color_label) and supabase-migration-images.sql (images).
 
 CREATE TABLE IF NOT EXISTS orders (
   id         SERIAL      PRIMARY KEY,

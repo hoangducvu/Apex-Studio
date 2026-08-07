@@ -31,4 +31,77 @@ function options() {
   return { statusCode: 200, headers: CORS, body: "" };
 }
 
-module.exports = { supabase, CORS, requireAdmin, json, options };
+/* ── Optional columns ────────────────────────────────────────────────────────
+ * variant_group / color_label / images only exist once the matching SQL file
+ * has been run. PostgREST reports a missing column two different ways:
+ *   • from Postgres    — column "images" of relation "products" does not exist
+ *   • from its cache   — Could not find the 'images' column of 'products'
+ *                        in the schema cache            (code PGRST204)
+ * Matching only the first one is why saves used to fail outright.
+ */
+function missingColumn(error, candidates) {
+  if (!error) return null;
+  const msg = `${error.message || ""} ${error.details || ""} ${error.hint || ""}`;
+  if (!/does not exist|schema cache/i.test(msg)) return null;
+  return candidates.find((c) => new RegExp(`\\b${c}\\b`, "i").test(msg)) || null;
+}
+
+/**
+ * Runs `attempt(row)` and, whenever the database rejects an optional column,
+ * drops that column and tries again — so a product save never fails just
+ * because a migration is still pending.
+ *
+ * @param {(row: object) => Promise<{data:any, error:any}>} attempt
+ * @param {object}   row       full row, optional columns included
+ * @param {string[]} optional  column names that are safe to drop
+ * @returns {Promise<{data:any, error:any, dropped:string[]}>}
+ */
+async function saveTolerant(attempt, row, optional) {
+  const current = { ...row };
+  const dropped = [];
+
+  for (let i = 0; i <= optional.length; i++) {
+    const res = await attempt(current);
+    const missing = missingColumn(res.error, optional);
+    if (!missing) return { ...res, dropped };
+    delete current[missing];
+    dropped.push(missing);
+  }
+
+  return { data: null, error: { message: "Could not save product" }, dropped };
+}
+
+/* ── Product image gallery ───────────────────────────────────────────────────
+ * A product carries an ordered list of images. Position 0 is the main shot
+ * (and stays mirrored into products.image so every existing code path keeps
+ * working); position 1 is what the storefront reveals on hover.
+ */
+const MAX_IMAGES = 12;
+
+function normalizeImages(value) {
+  const list = Array.isArray(value) ? value : typeof value === "string" ? safeParseArray(value) : [];
+  const seen = new Set();
+  const out = [];
+  for (const item of list) {
+    const url = String(item || "").trim();
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    out.push(url);
+    if (out.length >= MAX_IMAGES) break;
+  }
+  return out;
+}
+
+function safeParseArray(str) {
+  try {
+    const parsed = JSON.parse(str);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+module.exports = {
+  supabase, CORS, requireAdmin, json, options,
+  missingColumn, saveTolerant, normalizeImages, MAX_IMAGES,
+};
