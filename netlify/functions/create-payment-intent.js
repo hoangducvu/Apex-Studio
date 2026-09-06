@@ -10,13 +10,6 @@ const COUNTRY_CODES = {
   Slovakia:"SK", Slovenia:"SI", Spain:"ES", Sweden:"SE",
 };
 
-// ── Lens customisation surcharges (mirror of LENS_OPTIONS in script.js) ─────
-const LENS_OPTIONS = {
-  none:   { price: 0,  colors: 0, label: "Standard lens" },
-  single: { price: 30, colors: 1, label: "Custom lens — 1 colour" },
-  duo:    { price: 35, colors: 2, label: "Custom lens — 2 colours / gradient" },
-};
-
 // ── Discount codes (mirror of DISCOUNTS in script.js) ───────────────────────
 const DISCOUNTS = {
   LUMLA: { percent: 10, label: "LUMLA · 10% off" },
@@ -52,24 +45,10 @@ exports.handler = async (event) => {
       }
 
       const qty = Math.max(1, Math.min(parseInt(i.qty, 10) || 1, 99));
-      const lensType = LENS_OPTIONS[i.lens?.type] ? i.lens.type : "none";
-      const lensCfg  = LENS_OPTIONS[lensType];
-      const colors   = Array.isArray(i.lens?.colors)
-        ? i.lens.colors.slice(0, lensCfg.colors).map((c) => String(c).slice(0, 40))
-        : [];
-
-      const unit = round2(Number(p.price) + lensCfg.price);
+      const unit = round2(Number(p.price));
       subtotal += unit * qty;
 
-      lines.push({
-        id: p.id,
-        name: p.name,
-        qty,
-        unit,
-        lens: lensType === "none"
-          ? ""
-          : `${lensCfg.label}${colors.length ? " (" + colors.join(" → ") + ")" : ""}`,
-      });
+      lines.push({ id: p.id, name: p.name, qty, unit });
     }
     subtotal = round2(subtotal);
 
@@ -94,8 +73,8 @@ exports.handler = async (event) => {
         },
       } : undefined,
       metadata: {
-        items_json:    JSON.stringify(lines.map((l) => ({ id: l.id, qty: l.qty, name: l.name, lens: l.lens }))).slice(0, 500),
-        items_display: lines.map((l) => `${l.name}${l.lens ? " [" + l.lens + "]" : ""} ×${l.qty}`).join(", ").slice(0, 500),
+        items_json:    JSON.stringify(lines.map((l) => ({ id: l.id, qty: l.qty, name: l.name }))).slice(0, 500),
+        items_display: lines.map((l) => `${l.name} ×${l.qty}`).join(", ").slice(0, 500),
         subtotal:      subtotal.toFixed(2),
         discount_code: deal ? code : "",
         discount:      discount.toFixed(2),

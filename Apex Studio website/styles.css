@@ -456,11 +456,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 .shop-more { text-align: center; margin-top: clamp(32px, 4vw, 56px); }
 .card__link { display: flex; flex-direction: column; flex: 1; }
 .card__media-link { display: block; }
-.pd__price-add {
-  font-family: var(--font-ui); font-size: 0.66rem; font-weight: 600;
-  letter-spacing: 0.14em; text-transform: uppercase; color: var(--c-red); margin-left: 10px;
-}
-
 /* collection card showing a live product shot */
 .collection-card--shot img {
   object-fit: contain; padding: 14%;
@@ -515,61 +510,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 .drawer__subtotal--sub, .drawer__subtotal--discount { margin-bottom: 8px; color: var(--c-text-soft); }
 .drawer__subtotal--discount { color: var(--c-red); }
 .co__total-row--discount { color: var(--c-red); font-weight: 600; }
-
-/* ---------- Lens customisation ---------- */
-.lens {
-  margin: 26px 0 0; padding-top: 22px; border-top: 1px solid var(--c-line);
-}
-.lens__title {
-  font-family: var(--font-tech); font-size: 0.68rem; font-weight: 700;
-  letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 14px;
-}
-.lens__opts { display: grid; gap: 8px; }
-.lens__opt {
-  display: flex; align-items: center; gap: 12px;
-  border: 1px solid var(--c-line); padding: 13px 15px; cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-}
-.lens__opt:hover { border-color: var(--c-line-2); }
-.lens__opt input { accent-color: #0a0a0a; margin: 0; }
-.lens__opt.is-on { border-color: var(--c-ink); background: var(--c-paper-2); }
-.lens__opt-label { flex: 1; font-size: 0.86rem; }
-.lens__opt-price { font-family: var(--font-tech); font-size: 0.78rem; font-weight: 700; }
-.lens__colors { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
-.lens__colors[hidden] { display: none; }
-.lens__color label {
-  display: block; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--c-text-soft); margin-bottom: 7px;
-}
-.lens__color select {
-  width: 100%; padding: 12px 13px; border: 1px solid var(--c-line);
-  background: var(--c-paper); outline: none; border-radius: 0;
-}
-.lens__color select:focus { border-color: var(--c-ink); }
-
-/* colour chips — the swatch colour comes from --sw, set per button */
-.lens__swatches { display: flex; flex-wrap: wrap; gap: 6px; }
-.lens__swatch {
-  width: 26px; height: 26px; flex: 0 0 auto; padding: 0; cursor: pointer;
-  background: var(--sw); border: 1px solid var(--c-line);
-  border-radius: 50%; position: relative;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-.lens__swatch:hover { transform: scale(1.12); }
-.lens__swatch:focus-visible { outline: 2px solid var(--c-ink); outline-offset: 2px; }
-.lens__swatch.is-on {
-  box-shadow: 0 0 0 2px var(--c-paper), 0 0 0 3px var(--c-ink);
-}
-/* one column per swatch row reads better than two cramped ones */
-.lens__colors { grid-template-columns: 1fr; }
-.lens__note {
-  margin-top: 12px; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--c-text-soft);
-}
-.drawer-item__lens, .co__item-lens {
-  color: var(--c-red); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
-  margin-top: 2px;
-}
 
 /* product detail: colour variants */
 .pd__variants { margin-top: 18px; }
