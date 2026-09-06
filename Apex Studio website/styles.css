@@ -851,6 +851,33 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   letter-spacing: 0.12em; text-transform: uppercase; padding: 7px 0;
 }
 .co__free { color: var(--c-red); font-weight: 700; }
+
+/* delivery choice — one card per service, priced for the cart on screen */
+.co__ship-opts { display: grid; gap: 8px; }
+.co__ship-opt {
+  display: flex; align-items: center; gap: 13px;
+  border: 1px solid var(--c-line); padding: 13px 15px; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.co__ship-opt:hover { border-color: var(--c-line-2); }
+.co__ship-opt.is-on { border-color: var(--c-ink); background: var(--c-paper-2); }
+.co__ship-opt input { accent-color: #0a0a0a; margin: 0; flex: 0 0 auto; }
+.co__ship-text { flex: 1; display: block; }
+.co__ship-name { display: block; font-size: 0.86rem; font-weight: 600; }
+.co__ship-sub {
+  display: block; margin-top: 3px; color: var(--c-text-soft);
+  font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.co__ship-price { font-family: var(--font-tech); font-size: 0.8rem; font-weight: 700; }
+.co__ship-hint {
+  margin-top: 10px; color: var(--c-text-soft);
+  font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.co__ship-note {
+  margin: 2px 0 0; color: var(--c-red);
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.co__ship-note[hidden] { display: none; }
 .co__total-row--grand {
   border-top: 1px solid var(--c-line-2); margin-top: 10px; padding-top: 14px;
   font-weight: 700; font-size: 0.9rem;

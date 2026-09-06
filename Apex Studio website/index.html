@@ -371,7 +371,7 @@
       </div>
       <div class="drawer__subtotal"><span>Total</span><strong id="drawerTotal">€0</strong></div>
       <button class="btn btn--primary btn--full" id="checkoutBtn">Check out <span>→</span></button>
-      <p class="drawer__note">Fast shipping · Secured by Stripe</p>
+      <p class="drawer__note">Shipping calculated at checkout · Secured by Stripe</p>
     </div>
   </aside>
 
@@ -489,6 +489,14 @@
               </div>
             </fieldset>
 
+            <fieldset class="co__fieldset">
+              <legend class="co__legend">Delivery</legend>
+              <div class="co__ship-opts" id="coShipOpts"></div>
+              <p class="co__ship-hint">
+                We ship from Malta with MaltaPost. Free standard delivery on orders over &euro;90.
+              </p>
+            </fieldset>
+
             <button class="btn btn--primary btn--full co__next" id="coToPayment">
               Continue to Payment <span>→</span>
             </button>
@@ -557,8 +565,9 @@
               <span id="coDiscountLabel">Discount</span><span id="coDiscount">−€0</span>
             </div>
             <div class="co__total-row">
-              <span>Shipping</span><span class="co__free">FREE</span>
+              <span>Shipping</span><span id="coShipping">&euro;0</span>
             </div>
+            <p class="co__ship-note" id="coShipNote" hidden></p>
             <div class="co__total-row co__total-row--grand">
               <span>Total</span><span id="coGrandTotal">€0</span>
             </div>

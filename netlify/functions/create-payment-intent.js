@@ -10,6 +10,27 @@ const COUNTRY_CODES = {
   Slovakia:"SK", Slovenia:"SI", Spain:"ES", Sweden:"SE",
 };
 
+/* ── Shipping (mirror of SHIPPING in script.js) ─────────────────────────────
+   MaltaPost prices Malta → anywhere in the EU as a single zone, so only the
+   weight of the parcel moves the cost, never the destination. A packed pair
+   sits in the 101–300 g band: €5.81 untracked, €13.29 tracked. These rates
+   round that up a little to absorb two-pair orders (301–500 g).
+
+   Over FREE_SHIPPING_OVER the standard rate is waived, and tracked costs the
+   difference — so the shop spends the same either way. */
+const SHIPPING_OPTIONS = {
+  standard: { price: 5.95,  label: "Standard (untracked)" },
+  tracked:  { price: 13.95, label: "Tracked & signed" },
+};
+const FREE_SHIPPING_OVER = 90;
+
+// Charge for `method`, given what the customer pays for the goods themselves.
+function shippingCost(method, goodsTotal) {
+  const opt = SHIPPING_OPTIONS[method] || SHIPPING_OPTIONS.standard;
+  const waived = goodsTotal >= FREE_SHIPPING_OVER ? SHIPPING_OPTIONS.standard.price : 0;
+  return round2(Math.max(0, opt.price - waived));
+}
+
 // ── Discount codes (mirror of DISCOUNTS in script.js) ───────────────────────
 const DISCOUNTS = {
   LUMLA: { percent: 10, label: "LUMLA · 10% off" },
@@ -22,7 +43,7 @@ exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   try {
-    const { items, email, shipping, discountCode } = JSON.parse(event.body || "{}");
+    const { items, email, shipping, discountCode, shippingMethod } = JSON.parse(event.body || "{}");
     if (!Array.isArray(items) || !items.length) return json(400, { error: "Cart is empty" });
 
     // Price the order from the database — the amount sent by the browser is
@@ -55,7 +76,11 @@ exports.handler = async (event) => {
     const code = String(discountCode || "").trim().toUpperCase();
     const deal = DISCOUNTS[code];
     const discount = deal ? round2((subtotal * deal.percent) / 100) : 0;
-    const total = round2(subtotal - discount);
+    const goods = round2(subtotal - discount);
+
+    const method = SHIPPING_OPTIONS[shippingMethod] ? shippingMethod : "standard";
+    const postage = shippingCost(method, goods);
+    const total = round2(goods + postage);
 
     if (!(total > 0)) return json(400, { error: "Invalid amount" });
 
@@ -78,6 +103,8 @@ exports.handler = async (event) => {
         subtotal:      subtotal.toFixed(2),
         discount_code: deal ? code : "",
         discount:      discount.toFixed(2),
+        shipping_method: SHIPPING_OPTIONS[method].label,
+        shipping:      postage.toFixed(2),
         source: "lumla-glasses-web",
       },
       payment_method_types: ["card"],
@@ -88,6 +115,8 @@ exports.handler = async (event) => {
       amount: total,
       subtotal,
       discount,
+      shipping: postage,
+      shippingMethod: method,
       discountApplied: !!deal,
     });
   } catch (err) {

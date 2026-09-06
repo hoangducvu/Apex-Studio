@@ -29,6 +29,47 @@ const FALLBACK_PRODUCTS = [
 function unitPrice(p) { return p?.price || 0; }
 
 /* ============================================================
+   SHIPPING
+   ------------------------------------------------------------
+   MaltaPost prices Malta → anywhere in the EU as one zone, so the
+   destination never changes the cost — only the weight of the parcel does,
+   and a packed pair sits in the 101–300 g band (€5.81 untracked / €13.29
+   tracked). These rates round that up to absorb two-pair orders.
+
+   Mirrored server-side in create-payment-intent.js, which always
+   recalculates the charge — this is only the storefront view.
+   ============================================================ */
+const SHIPPING = {
+  standard: {
+    price: 5.95,
+    label: "Standard",
+    sub:   "From 3 business days · no tracking",
+  },
+  tracked: {
+    price: 13.95,
+    label: "Tracked & signed",
+    sub:   "From 6 business days · tracked, signed for",
+  },
+};
+const FREE_SHIPPING_OVER = 90;
+
+let shipMethod = "standard";
+
+/* Over the threshold the standard rate is waived, and tracked costs the
+   difference — the shop spends the same either way, so upgrading stays
+   worth it on a big order. */
+function shippingCost(method = shipMethod, goods = cartTotal()) {
+  const opt = SHIPPING[method] || SHIPPING.standard;
+  const waived = goods >= FREE_SHIPPING_OVER ? SHIPPING.standard.price : 0;
+  return Math.round(Math.max(0, opt.price - waived) * 100) / 100;
+}
+
+// What the card is actually charged: goods after discount, plus postage.
+function orderTotal() {
+  return Math.round((cartTotal() + shippingCost()) * 100) / 100;
+}
+
+/* ============================================================
    DISCOUNT CODES
    Mirrored server-side in create-payment-intent.js — the server
    always recalculates the charge, this is only the storefront view.
@@ -258,7 +299,7 @@ function renderProductDetail() {
         <li><span>Fit</span> Freesize — suits most face shapes</li>
         <li><span>Lenses</span> UV400 protection</li>
         <li><span>Includes</span> Protective case &amp; cleaning cloth</li>
-        <li><span>Shipping</span> Fast EU shipping · prices in EUR €</li>
+        <li><span>Shipping</span> EU-wide from ${fmt(SHIPPING.standard.price)} · free over ${fmt(FREE_SHIPPING_OVER)}</li>
       </ul>
     </div>`;
 
@@ -745,6 +786,8 @@ const coDiscountRow  = document.getElementById("coDiscountRow");
 const coDiscountLbl  = document.getElementById("coDiscountLabel");
 const coDiscountVal  = document.getElementById("coDiscount");
 const coGrandTotal   = document.getElementById("coGrandTotal");
+const coShipping     = document.getElementById("coShipping");
+const coShipNote     = document.getElementById("coShipNote");
 const coConfirmEmail = document.getElementById("coConfirmEmail");
 const coOrderNum     = document.getElementById("coOrderNum");
 const coPaymentError = document.getElementById("coPaymentError");
@@ -795,9 +838,10 @@ async function mountPaymentElement() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        amount: cartTotal(),
+        amount: orderTotal(),
         items: cartLines(),
         discountCode: promo?.code || "",
+        shippingMethod: shipMethod,
         email,
         shipping: { name: `${first} ${last}`.trim(), address, city, zip, country },
       }),
@@ -806,7 +850,7 @@ async function mountPaymentElement() {
     if (error) throw new Error(error);
 
     // Server is the source of truth for the charge — reflect it in the summary.
-    if (typeof amount === "number" && Math.abs(amount - cartTotal()) > 0.005) {
+    if (typeof amount === "number" && Math.abs(amount - orderTotal()) > 0.005) {
       coGrandTotal.textContent = fmt(amount);
     }
 
@@ -874,6 +918,7 @@ async function mountPaymentElement() {
 // ── Checkout flow ─────────────────────────────────────────────────────────
 function openCheckout() {
   if (cart.size === 0) { showToast("Your cart is empty!"); return; }
+  renderShipOptions();
   renderCheckoutSummary();
   coOverlay.classList.add("open");
   coOverlay.setAttribute("aria-hidden", "false");
@@ -908,7 +953,36 @@ function renderCheckoutSummary() {
     if (coDiscountLbl && promo) coDiscountLbl.textContent = promo.label;
     if (coDiscountVal) coDiscountVal.textContent = "−" + fmtEur(disc);
   }
-  coGrandTotal.textContent = fmtEur(cartTotal());
+  const post = shippingCost();
+  if (coShipping) {
+    coShipping.textContent = post === 0 ? "FREE" : fmtEur(post);
+    coShipping.classList.toggle("co__free", post === 0);
+  }
+  if (coShipNote) {
+    const short = Math.round((FREE_SHIPPING_OVER - cartTotal()) * 100) / 100;
+    coShipNote.hidden = short <= 0;
+    if (short > 0) coShipNote.textContent = `Spend ${fmtEur(short)} more for free standard shipping`;
+  }
+  coGrandTotal.textContent = fmtEur(orderTotal());
+}
+
+/* The two delivery choices, priced for the cart as it stands — the labels
+   show what this order would actually pay, threshold included. */
+function renderShipOptions() {
+  const wrap = document.getElementById("coShipOpts");
+  if (!wrap) return;
+  wrap.innerHTML = Object.entries(SHIPPING).map(([key, o]) => {
+    const cost = shippingCost(key);
+    return `
+      <label class="co__ship-opt${key === shipMethod ? " is-on" : ""}" data-ship="${key}">
+        <input type="radio" name="shipMethod" value="${key}"${key === shipMethod ? " checked" : ""} />
+        <span class="co__ship-text">
+          <span class="co__ship-name">${esc(o.label)}</span>
+          <span class="co__ship-sub">${esc(o.sub)}</span>
+        </span>
+        <span class="co__ship-price">${cost === 0 ? "FREE" : fmtEur(cost)}</span>
+      </label>`;
+  }).join("");
 }
 
 function setCoStep(n) {
@@ -923,6 +997,16 @@ function setCoStep(n) {
   });
   coOverlay.scrollTo({ top: 0, behavior: "smooth" });
 }
+
+// Delivery choice — repricing the options keeps the free-shipping line honest
+// when the threshold changes what "tracked" costs.
+document.getElementById("coShipOpts")?.addEventListener("change", (e) => {
+  const opt = e.target.closest("[data-ship]");
+  if (!opt) return;
+  shipMethod = opt.dataset.ship;
+  renderShipOptions();
+  renderCheckoutSummary();
+});
 
 // Step 1 → 2: validate info, then create PaymentIntent & mount Stripe element
 document.getElementById("coToPayment").addEventListener("click", async () => {
