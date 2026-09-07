@@ -670,6 +670,27 @@
     }
 
     /* ── TRUNCATE ──────────────────────────────────────────────────────── */
+    /* Shipping address — a postal label, readable at a glance */
+    .ship-cell { min-width: 190px; }
+    .ship-addr {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      line-height: 1.55;
+      white-space: pre-line;
+    }
+    .ship-name { color: var(--text); }
+    .ship-rest { color: var(--muted); }
+    .ship-none { color: var(--warning); font-size: 0.75rem; }
+    .ship-method {
+      display: inline-block;
+      margin-top: 6px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
     .truncate {
       max-width: 140px;
       overflow: hidden;
@@ -761,13 +782,14 @@
               <th>Date</th>
               <th>Order ID</th>
               <th>Email</th>
+              <th>Ship to</th>
               <th>Items</th>
               <th>Total</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody id="ordersTbody">
-            <tr class="loading-row"><td colspan="6">LOADING...</td></tr>
+            <tr class="loading-row"><td colspan="7">LOADING...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1090,20 +1112,76 @@
     }
 
     /* ── Orders ─────────────────────────────────────────────────────────── */
+    /* Postal-label order: name, street, postcode + town, region, country. */
+    function addressLines(o) {
+      return [
+        o.ship_name,
+        o.ship_line1,
+        o.ship_line2,
+        [o.ship_zip, o.ship_city].filter(Boolean).join(" "),
+        [o.ship_state, COUNTRY_NAMES[o.ship_country] || o.ship_country].filter(Boolean).join(", "),
+        o.ship_phone ? `tel ${o.ship_phone}` : "",
+      ].filter((l) => l && String(l).trim());
+    }
+
+    /* Stripe stores the destination as a two-letter code — spell it out so a
+       parcel never goes to the wrong country through a misread abbreviation. */
+    const COUNTRY_NAMES = {
+      AT:"Austria", BE:"Belgium", BG:"Bulgaria", HR:"Croatia", CY:"Cyprus",
+      CZ:"Czech Republic", DK:"Denmark", EE:"Estonia", FI:"Finland",
+      FR:"France", DE:"Germany", GR:"Greece", HU:"Hungary", IE:"Ireland",
+      IT:"Italy", LV:"Latvia", LT:"Lithuania", LU:"Luxembourg", MT:"Malta",
+      NL:"Netherlands", PL:"Poland", PT:"Portugal", RO:"Romania",
+      SK:"Slovakia", SI:"Slovenia", ES:"Spain", SE:"Sweden",
+    };
+
+    /* The "Ship to" cell: the label as you'd write it, plus one-click copy. */
+    function shipCell(o) {
+      const lines = addressLines(o);
+      if (!lines.length) {
+        return `<td class="ship-cell"><span class="ship-none">No address — check Stripe</span></td>`;
+      }
+
+      const [name, ...rest] = lines;
+      const method = o.ship_method
+        ? `<div class="ship-method">${escHtml(o.ship_method)}</div>` : "";
+
+      return `<td class="ship-cell">
+        <div class="ship-addr"><span class="ship-name">${escHtml(name)}</span>
+<span class="ship-rest">${escHtml(rest.join("\n"))}</span></div>
+        ${method}
+        <button class="btn-edit" style="margin-top:6px" data-address="${escHtml(lines.join("\n"))}"
+                onclick="copyAddress(this)" title="Copy the address for the parcel label">Copy address</button>
+      </td>`;
+    }
+
+    /* Copy a full address to the clipboard, ready to paste onto a label */
+    async function copyAddress(btn) {
+      const text  = btn.dataset.address;
+      const label = btn.textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = "Copied!";
+      } catch {
+        window.prompt("Shipping address:", text);
+      }
+      setTimeout(() => (btn.textContent = label), 1400);
+    }
+
     async function loadOrders() {
       const tbody = document.getElementById("ordersTbody");
       try {
         const orders = await apiFetch("/api/admin/orders");
         renderOrders(orders);
       } catch(e) {
-        tbody.innerHTML = `<tr class="loading-row"><td colspan="6">Error: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr class="loading-row"><td colspan="7">Error: ${e.message}</td></tr>`;
       }
     }
 
     function renderOrders(data) {
       const tbody = document.getElementById("ordersTbody");
       if (!data.length) {
-        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">No orders yet.</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">No orders yet.</div></td></tr>`;
         return;
       }
 
@@ -1126,6 +1204,7 @@
           <td style="color:var(--muted);white-space:nowrap">${dateStr}</td>
           <td style="font-family:'Space Mono',monospace;font-size:0.8rem">APX-${shortId}</td>
           <td class="truncate" title="${escHtml(o.email || "")}">${escHtml(o.email || "—")}</td>
+          ${shipCell(o)}
           <td class="truncate" title="${escHtml(itemsDisplay)}" style="max-width:200px">${escHtml(itemsDisplay)}</td>
           <td style="font-family:'Space Mono',monospace;font-size:0.85rem;white-space:nowrap">€${Number(o.total || 0).toFixed(2)}</td>
           <td><span class="order-status">${escHtml(o.status || "paid")}</span></td>

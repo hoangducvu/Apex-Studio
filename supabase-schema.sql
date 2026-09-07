@@ -30,8 +30,20 @@ CREATE TABLE IF NOT EXISTS orders (
   items_json TEXT,
   total      FLOAT,
   status     TEXT        DEFAULT 'paid',
+  -- Where the parcel goes, copied from the Stripe payment at checkout
+  ship_name    TEXT,
+  ship_line1   TEXT,
+  ship_line2   TEXT,
+  ship_city    TEXT,
+  ship_zip     TEXT,
+  ship_state   TEXT,
+  ship_country TEXT,
+  ship_phone   TEXT,
+  ship_method  TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Existing installs: see supabase-migration-shipping.sql for the ship_* columns.
 
 -- ── Row Level Security ───────────────────────────────────────────────────────
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
