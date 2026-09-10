@@ -43,15 +43,39 @@ const SHIPPING = {
   standard: {
     price: 5.95,
     label: "Standard",
-    sub:   "From 3 business days · no tracking",
+    sub:   "No tracking",
   },
   tracked: {
     price: 13.95,
     label: "Tracked & signed",
-    sub:   "From 6 business days · tracked, signed for",
+    sub:   "Tracked, signed for on delivery",
   },
 };
 const FREE_SHIPPING_OVER = 90;
+
+/* How long the parcel is in transit is set by where it lands, not by which
+   service carries it: Malta is a local hop, everywhere else crosses a border.
+   Both services quote the same window for a given destination. */
+const DELIVERY = {
+  malta: { label: "Malta",         eta: "2–3 days",   long: "2–3 business days" },
+  intl:  { label: "International", eta: "10–20 days", long: "10–20 business days" },
+};
+// Anything that isn't Malta is treated as international.
+function destKey(country) {
+  return String(country || "").trim().toLowerCase() === "malta" ? "malta" : "intl";
+}
+function chosenCountry() {
+  return document.getElementById("coCountry")?.value || "";
+}
+/* Before a country is picked there is nothing to narrow it down to, so the
+   line names both windows rather than guessing at one. */
+function deliveryLine(country = chosenCountry()) {
+  if (!String(country).trim()) {
+    return `${DELIVERY.malta.label} ${DELIVERY.malta.eta} · intl ${DELIVERY.intl.eta}`;
+  }
+  const d = DELIVERY[destKey(country)];
+  return `${d.label} · ${d.eta}`;
+}
 
 let shipMethod = "standard";
 
@@ -274,10 +298,9 @@ function renderProductDetail() {
     <div class="pd__info">
       <p class="pd__cat">${esc(p.category || "Eyewear")}</p>
       <h1 class="pd__name">${esc(p.name)}</h1>
-      <div class="pd__stars" aria-hidden="true">★★★★★ <span>Loved by our customers</span></div>
       <div class="pd__price">${fmt(p.price)}</div>
       <p class="pd__stock ${soldOut ? "pd__stock--out" : ""}">
-        ${soldOut ? "Sold out" : lowStock ? `Low stock — only ${p.quantity} left` : "In stock — ships in 2–3 business days"}
+        ${soldOut ? "Sold out" : lowStock ? `Low stock — only ${p.quantity} left` : `In stock — ${deliveryLine()}`}
       </p>
 
       ${variantsHtml}
@@ -299,7 +322,8 @@ function renderProductDetail() {
         <li><span>Fit</span> Freesize — suits most face shapes</li>
         <li><span>Lenses</span> UV400 protection</li>
         <li><span>Includes</span> Protective case &amp; cleaning cloth</li>
-        <li><span>Shipping</span> EU-wide from ${fmt(SHIPPING.standard.price)} · free over ${fmt(FREE_SHIPPING_OVER)}</li>
+        <li><span>Shipping</span> From ${fmt(SHIPPING.standard.price)} · free over ${fmt(FREE_SHIPPING_OVER)}</li>
+        <li><span>Delivery</span> ${deliveryLine()}</li>
       </ul>
     </div>`;
 
@@ -978,7 +1002,7 @@ function renderShipOptions() {
         <input type="radio" name="shipMethod" value="${key}"${key === shipMethod ? " checked" : ""} />
         <span class="co__ship-text">
           <span class="co__ship-name">${esc(o.label)}</span>
-          <span class="co__ship-sub">${esc(o.sub)}</span>
+          <span class="co__ship-sub">${esc(deliveryLine())} · ${esc(o.sub)}</span>
         </span>
         <span class="co__ship-price">${cost === 0 ? "FREE" : fmtEur(cost)}</span>
       </label>`;
@@ -1007,6 +1031,9 @@ document.getElementById("coShipOpts")?.addEventListener("change", (e) => {
   renderShipOptions();
   renderCheckoutSummary();
 });
+
+// Destination sets the transit window, so requote the options when it changes.
+document.getElementById("coCountry")?.addEventListener("change", renderShipOptions);
 
 // Step 1 → 2: validate info, then create PaymentIntent & mount Stripe element
 document.getElementById("coToPayment").addEventListener("click", async () => {
@@ -1053,6 +1080,8 @@ coPlaceOrderBtn.addEventListener("click", async () => {
   if (paymentIntent && paymentIntent.status === "succeeded") {
     const email = document.getElementById("coEmail").value.trim();
     coConfirmEmail.textContent = email || "your email";
+    const coConfirmEta = document.getElementById("coConfirmEta");
+    if (coConfirmEta) coConfirmEta.textContent = DELIVERY[destKey(chosenCountry())].long;
     coOrderNum.textContent = "Order LML-" + paymentIntent.id.slice(-8).toUpperCase();
     cart.clear();
     promo = null;

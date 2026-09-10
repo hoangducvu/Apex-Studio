@@ -8,7 +8,7 @@
   <link rel="icon" href="assets/lumla/logo.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://js.stripe.com/v3/" defer></script>
 </head>
@@ -37,7 +37,7 @@
         </nav>
         <a href="index.html" class="nav__logo" aria-label="LUMLA GLASSES home"><img src="assets/lumla/logo.png" alt="LUMLA GLASSES" /></a>
         <nav class="nav__links nav__links--right">
-          <a href="index.html#reviews">Reviews</a>
+          <a href="shipping.html">Shipping</a>
           <button class="nav__cart" id="cartOpen" aria-label="Open cart">
             Cart <span class="nav__cart-count" id="cartCount">0</span>
           </button>
@@ -50,7 +50,7 @@
       <a href="shop.html?filter=best-seller">Best Seller</a>
         <a href="shop.html">Catalog</a>
       <a href="contact.html">Contact</a>
-      <a href="index.html#reviews">Reviews</a>
+      <a href="shipping.html">Shipping</a>
       <a href="#" id="mobileCart">Cart (<span id="mobileCartCount">0</span>)</a>
     </div>
   </div>
@@ -71,26 +71,68 @@
       </div>
     </section>
 
-    <!-- ============ MARQUEE ============ -->
-    <div class="marquee" aria-hidden="true">
-      <div class="marquee__track">
-        <span>UV400 Protection</span><span>Freesize Fit</span><span>Handpicked Frames</span><span>Fast EU Shipping</span><span>Protective Case Included</span>
-        <span>UV400 Protection</span><span>Freesize Fit</span><span>Handpicked Frames</span><span>Fast EU Shipping</span><span>Protective Case Included</span>
+    <!-- ============ TICKER ============ -->
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker__track">
+        <span>UV400 Protection</span><span>Freesize Fit</span><span>Shipped From Malta</span><span>Protective Case Included</span><span>Prices In EUR</span>
+        <span>UV400 Protection</span><span>Freesize Fit</span><span>Shipped From Malta</span><span>Protective Case Included</span><span>Prices In EUR</span>
       </div>
     </div>
+
+    <!-- ============ DROP PANEL ============ -->
+    <section class="drop">
+      <div class="drop__inner">
+        <div class="drop__left">
+          <span class="tag tag--red">Drop 001 · Live now</span>
+          <h2 class="drop__title">See<br /><em>Loud</em></h2>
+          <p class="drop__lede">
+            Frames picked for the street, not the showroom. One price per pair,
+            no upsells, no lens menus — what you see is what lands on your doorstep.
+          </p>
+          <div class="drop__cta">
+            <a href="shop.html" class="btn btn--red">Shop the drop <span>→</span></a>
+            <a href="shop.html?filter=best-seller" class="btn btn--ghost">Best sellers</a>
+          </div>
+        </div>
+        <ol class="drop__specs">
+          <li><b>01</b><span>UV400 lenses</span><i>Standard on every pair</i></li>
+          <li><b>02</b><span>Freesize fit</span><i>One size, built to sit level</i></li>
+          <li><b>03</b><span>Case + cloth</span><i>In the box, not an add-on</i></li>
+          <li><b>04</b><span>Free over &euro;90</span><i>Standard postage waived</i></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ BEST SELLERS ============ -->
+    <section class="section" id="shop">
+      <div class="sec-head">
+        <div class="sec-head__left">
+          <span class="sec-kicker">Best Sellers</span>
+          <h2 class="sec-title">Moving<br />fastest</h2>
+          <p class="sec-desc">The frames that keep selling out. Every pair ships with a protective case and cleaning cloth.</p>
+        </div>
+        <a href="shop.html" class="sec-link">View All →</a>
+      </div>
+      <div class="grid" id="productGrid">
+        <div class="grid-loading">Loading frames…</div>
+      </div>
+      <div class="shop-more">
+        <a href="shop.html" class="btn btn--outline">Browse the full catalog →</a>
+      </div>
+    </section>
 
     <!-- ============ COLLECTIONS ============ -->
     <section class="section section--dark" id="collections">
       <div class="sec-head">
         <div class="sec-head__left">
           <span class="sec-kicker">Collections</span>
-          <h2 class="sec-title">LLA Collection</h2>
-          <p class="sec-desc">Three lines, one idea — frames that read clean from every angle. Choose the weight that matches how you move.</p>
+          <h2 class="sec-title">Three lines,<br />one idea</h2>
+          <p class="sec-desc">Frames that read clean from every angle. Pick the weight that matches how you move.</p>
         </div>
         <a href="shop.html" class="sec-link">All Frames →</a>
       </div>
-      <div class="collections">
-        <a class="collection-card" href="shop.html?filter=metallic" data-collection="Metallic" data-reveal>
+      <div class="collections collections--split">
+        <a class="collection-card collection-card--lead" href="shop.html?filter=metallic" data-collection="Metallic" data-reveal>
           <span class="collection-card__no">01</span>
           <img src="assets/lumla/collection-metallic.avif" alt="Metallic collection" loading="lazy" />
           <div class="collection-card__label">
@@ -116,172 +158,61 @@
         </a>
       </div>
     </section>
-    <!-- ============ BEST SELLERS ============ -->
-    <section class="section" id="shop">
+
+    <!-- ============ DELIVERY ============ -->
+    <section class="section" id="delivery">
       <div class="sec-head">
         <div class="sec-head__left">
-          <span class="sec-kicker">Best Sellers</span>
-          <h2 class="sec-title">Made for everyday<br />confidence</h2>
-          <p class="sec-desc">Every frame ships with a protective case and cleaning cloth.</p>
+          <span class="sec-kicker">Delivery</span>
+          <h2 class="sec-title">Ships from<br />Malta</h2>
+          <p class="sec-desc">Posted with MaltaPost from Sliema. Pick your service at checkout — the rate is the same wherever it lands.</p>
         </div>
-        <a href="shop.html" class="sec-link">View All →</a>
+        <a href="shipping.html" class="sec-link">Shipping policy →</a>
       </div>
-      <div class="grid" id="productGrid">
-        <div class="grid-loading">Loading frames…</div>
-      </div>
-      <div class="shop-more">
-        <a href="shop.html" class="btn btn--outline">Browse the full catalog →</a>
+      <div class="ship-cards">
+        <article class="ship-card ship-card--lead" data-reveal>
+          <span class="ship-card__tag">MT</span>
+          <h3 class="ship-card__place">Malta</h3>
+          <p class="ship-card__eta"><b>2–3</b><small>days</small></p>
+          <p class="ship-card__note">Local delivery once your order is posted. Sliema pickup on request.</p>
+        </article>
+        <article class="ship-card" data-reveal>
+          <span class="ship-card__tag">INT</span>
+          <h3 class="ship-card__place">International</h3>
+          <p class="ship-card__eta"><b>10–20</b><small>days</small></p>
+          <p class="ship-card__note">Everywhere else we ship. Tracked &amp; signed available at checkout.</p>
+        </article>
+        <article class="ship-card ship-card--flat" data-reveal>
+          <span class="ship-card__tag">€</span>
+          <h3 class="ship-card__place">Flat rate</h3>
+          <p class="ship-card__eta"><b>5.95</b><small>standard</small></p>
+          <p class="ship-card__note">Free on orders over &euro;90. Tracked &amp; signed &euro;13.95, or &euro;8 over the threshold.</p>
+        </article>
       </div>
     </section>
 
-    <!-- ============ VALUE STRIP ============ -->
+    <!-- ============ SPEC LEDGER ============ -->
     <section class="section section--flush">
-      <div class="strip">
-        <div class="strip__item">
-          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l3 6-9 12L3 9l3-6Z"/><path d="M3 9h18M9 3 6 9l6 12 6-12-3-6"/></svg>
+      <div class="specs">
+        <div class="specs__item">
+          <span class="specs__no">01</span>
           <strong>Premium Quality</strong>
-          <span>Durable frames crafted for everyday wear.</span>
+          <span class="specs__text">Durable frames crafted for everyday wear.</span>
         </div>
-        <div class="strip__item">
-          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2.5 1.5 5-.6 9.5"/><path d="M2 22c1.5-4 4-7 8-9"/></svg>
+        <div class="specs__item">
+          <span class="specs__no">02</span>
           <strong>Lightweight Comfort</strong>
-          <span>Designed to fit naturally and feel light all day.</span>
+          <span class="specs__text">Designed to fit naturally and feel light all day.</span>
         </div>
-        <div class="strip__item">
-          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/></svg>
-          <strong>Fast Shipping</strong>
-          <span>Fast and reliable delivery across the EU.</span>
+        <div class="specs__item">
+          <span class="specs__no">03</span>
+          <strong>UV400 Lenses</strong>
+          <span class="specs__text">Full protection on every pair, no upgrade needed.</span>
         </div>
-        <div class="strip__item">
-          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7.5 4.3 9 5.2v9L12 21l-9-5.2v-9L7.5 4.3Z"/><path d="m3.3 7 8.7 5 8.7-5M12 21v-9"/></svg>
+        <div class="specs__item">
+          <span class="specs__no">04</span>
           <strong>Easy Returns</strong>
-          <span>Shop with confidence — simple return policy.</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ REVIEWS ============ -->
-    <section class="section section--soft" id="reviews">
-      <div class="sec-head">
-        <div class="sec-head__left">
-          <span class="sec-kicker">Customer Reviews</span>
-          <h2 class="sec-title">Let customers<br />speak for us</h2>
-        </div>
-        <a href="contact.html" class="sec-link">Ask us anything →</a>
-      </div>
-      <div class="reviews-wrap">
-        <aside class="reviews-summary">
-          <div class="reviews-summary__score">4.9<sup>/5</sup></div>
-          <div class="reviews-summary__stars" aria-label="4.9 out of 5 stars">★★★★★</div>
-          <div class="reviews-summary__meta">
-            127 verified reviews<br />
-            Collected after delivery
-          </div>
-          <div class="reviews-summary__bars">
-            <div class="reviews-bar"><span>5★</span><i><b style="width:88%"></b></i><span>112</span></div>
-            <div class="reviews-bar"><span>4★</span><i><b style="width:9%"></b></i><span>11</span></div>
-            <div class="reviews-bar"><span>3★</span><i><b style="width:2%"></b></i><span>3</span></div>
-            <div class="reviews-bar"><span>2★</span><i><b style="width:1%"></b></i><span>1</span></div>
-            <div class="reviews-bar"><span>1★</span><i><b style="width:0%"></b></i><span>0</span></div>
-          </div>
-        </aside>
-
-        <div class="reviews">
-          <article class="review review--lead" data-reveal>
-            <div class="review__stars" aria-label="5 stars">★★★★★</div>
-            <p class="review__text">"Honestly I ordered these half expecting cheap tat for the price. They turned up in a proper case, the hinges don't wobble, and my sister has already asked where I got them. Four days to Munich."</p>
-            <div class="review__who">
-              <span class="review__avatar">LK</span>
-              <div>
-                <div class="review__name">Lena K.</div>
-                <div class="review__where">Munich · <span class="review__verified">✓ Verified</span> · 12 July</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="review" data-reveal>
-            <div class="review__stars" aria-label="5 stars">★★★★★</div>
-            <p class="review__text">"I messaged asking if they could do a gold tint instead of the standard black. Got a reply the same evening and they just… did it. Took about a week longer, worth it."</p>
-            <div class="review__who">
-              <span class="review__avatar">MB</span>
-              <div>
-                <div class="review__name">Matteo B.</div>
-                <div class="review__where">Turin · <span class="review__verified">✓ Verified</span> · 3 July</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="review" data-reveal>
-            <div class="review__stars" aria-label="5 stars">★★★★★</div>
-            <p class="review__text">"Wore these for three days straight at a festival, including falling asleep in them once. Still straight. The nose pads didn't leave marks, which is the thing I actually care about."</p>
-            <div class="review__who">
-              <span class="review__avatar">SV</span>
-              <div>
-                <div class="review__name">Sofie V.</div>
-                <div class="review__where">Antwerp · <span class="review__verified">✓ Verified</span> · 28 June</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="review" data-reveal>
-            <div class="review__stars" aria-label="4 stars">★★★★☆</div>
-            <p class="review__text">"Frames are great, no complaints there. Knocking one star off because it took nine days to reach Valencia and the tracking didn't update for most of it. Would still order again."</p>
-            <div class="review__who">
-              <span class="review__avatar">AR</span>
-              <div>
-                <div class="review__name">Alejandro R.</div>
-                <div class="review__where">Valencia · <span class="review__verified">✓ Verified</span> · 21 June</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="review" data-reveal>
-            <div class="review__stars" aria-label="5 stars">★★★★★</div>
-            <p class="review__text">"Bought one pair, ended up buying a second in black two weeks later. My partner keeps stealing the first ones so it was self defence really."</p>
-            <div class="review__who">
-              <span class="review__avatar">CD</span>
-              <div>
-                <div class="review__name">Chloé D.</div>
-                <div class="review__where">Lyon · <span class="review__verified">✓ Verified</span> · 15 June</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="review" data-reveal>
-            <div class="review__stars" aria-label="5 stars">★★★★★</div>
-            <p class="review__text">"Local pickup in Sliema, met at the plaza, done in five minutes. Glasses look exactly like the photos which is more than I can say for most places online."</p>
-            <div class="review__who">
-              <span class="review__avatar">JM</span>
-              <div>
-                <div class="review__name">Julia M.</div>
-                <div class="review__where">Sliema · <span class="review__verified">✓ Verified</span> · 9 June</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="review" data-reveal>
-            <div class="review__stars" aria-label="5 stars">★★★★★</div>
-            <p class="review__text">"The grey metallic ones are heavier than I expected — in a good way, they feel like they cost triple. Only note is I wish the case was hard shell."</p>
-            <div class="review__who">
-              <span class="review__avatar">DP</span>
-              <div>
-                <div class="review__name">Daniel P.</div>
-                <div class="review__where">Rotterdam · <span class="review__verified">✓ Verified</span> · 2 June</div>
-              </div>
-            </div>
-          </article>
-
-          <article class="review" data-reveal>
-            <div class="review__stars" aria-label="5 stars">★★★★★</div>
-            <p class="review__text">"The tint is subtler in person than on screen, which is what I wanted. Fit my face fine and I have a small head, so that's saying something."</p>
-            <div class="review__who">
-              <span class="review__avatar">NA</span>
-              <div>
-                <div class="review__name">Nadia A.</div>
-                <div class="review__where">Vienna · <span class="review__verified">✓ Verified</span> · 26 May</div>
-              </div>
-            </div>
-          </article>
+          <span class="specs__text">30 days from delivery — refund or exchange.</span>
         </div>
       </div>
     </section>
@@ -338,6 +269,7 @@
         <a href="https://www.facebook.com/profile.php?id=61591255014562" target="_blank" rel="noopener">Facebook</a>
       </div>
     </div>
+    <div class="footer__giant" aria-hidden="true">LUMLA <em>GLASSES</em></div>
     <div class="footer__bottom">
       <p>© <span id="year"></span> LUMLA GLASSES</p>
       <nav class="footer__legal">
@@ -493,7 +425,8 @@
               <legend class="co__legend">Delivery</legend>
               <div class="co__ship-opts" id="coShipOpts"></div>
               <p class="co__ship-hint">
-                We ship from Malta with MaltaPost. Free standard delivery on orders over &euro;90.
+                We ship from Malta with MaltaPost — 2–3 days within Malta, 10–20 days
+                internationally. Free standard delivery on orders over &euro;90.
               </p>
             </fieldset>
 
@@ -545,7 +478,7 @@
               <p id="coOrderNum" class="co__confirm-order"></p>
               <p class="co__confirm-sub">
                 A confirmation will be sent to <strong id="coConfirmEmail"></strong>.<br />
-                Your glasses ship within 2–3 business days.
+                Delivery takes <strong id="coConfirmEta">2–3 business days</strong> once posted.
               </p>
               <button class="btn btn--outline" id="coDone">Continue shopping</button>
             </div>
