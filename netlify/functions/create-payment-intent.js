@@ -1,5 +1,6 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { supabase, json, options } = require("./_helpers");
+const { lookupDiscount } = require("./discounts");
 
 const COUNTRY_CODES = {
   Austria:"AT", Belgium:"BE", Bulgaria:"BG", Croatia:"HR", Cyprus:"CY",
@@ -31,10 +32,9 @@ function shippingCost(method, goodsTotal) {
   return round2(Math.max(0, opt.price - waived));
 }
 
-// ── Discount codes (mirror of DISCOUNTS in script.js) ───────────────────────
-const DISCOUNTS = {
-  LUMLA: { percent: 10, label: "LUMLA · 10% off" },
-};
+/* Discount codes are managed in the admin panel and read here from the same
+   store, so the charge is calculated from what the shop actually set — never
+   from what the browser claims the discount is worth. */
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
@@ -73,8 +73,8 @@ exports.handler = async (event) => {
     }
     subtotal = round2(subtotal);
 
-    const code = String(discountCode || "").trim().toUpperCase();
-    const deal = DISCOUNTS[code];
+    const deal = await lookupDiscount(discountCode);
+    const code = deal ? deal.code : "";
     const discount = deal ? round2((subtotal * deal.percent) / 100) : 0;
     const goods = round2(subtotal - discount);
 

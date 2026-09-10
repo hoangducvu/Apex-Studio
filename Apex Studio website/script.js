@@ -95,13 +95,29 @@ function orderTotal() {
 
 /* ============================================================
    DISCOUNT CODES
-   Mirrored server-side in create-payment-intent.js — the server
-   always recalculates the charge, this is only the storefront view.
+   ------------------------------------------------------------
+   Codes are set in the admin panel, not in this file. Applying one
+   asks the API about that single code — the full list is never
+   published, so a code only works for someone who was sent it.
+
+   create-payment-intent.js checks the same store and recalculates the
+   charge, so this is only the storefront view of the deal.
    ============================================================ */
-const DISCOUNTS = {
-  LUMLA: { percent: 10, label: "LUMLA · 10% off" },
-};
 let promo = null; // { code, percent, label }
+
+// Asks the API whether one code is live. Resolves to the deal, or null.
+async function lookupDiscount(code) {
+  try {
+    const res = await fetch(`/api/discounts?code=${encodeURIComponent(code)}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const deal = await res.json();
+    return deal && deal.percent > 0 ? deal : null;
+  } catch {
+    return null;
+  }
+}
 
 /* ============================================================
    COLOUR VARIANT GROUPING  —  controlled from the admin panel
@@ -298,6 +314,7 @@ function renderProductDetail() {
     <div class="pd__info">
       <p class="pd__cat">${esc(p.category || "Eyewear")}</p>
       <h1 class="pd__name">${esc(p.name)}</h1>
+      <div class="pd__stars" aria-hidden="true">★★★★★ <span>Loved by our customers</span></div>
       <div class="pd__price">${fmt(p.price)}</div>
       <p class="pd__stock ${soldOut ? "pd__stock--out" : ""}">
         ${soldOut ? "Sold out" : lowStock ? `Low stock — only ${p.quantity} left` : `In stock — ${deliveryLine()}`}
@@ -723,18 +740,25 @@ document.addEventListener("click", (e) => {
 const promoForm = document.getElementById("promoForm");
 if (promoForm) {
   const note = document.getElementById("promoNote");
-  promoForm.addEventListener("submit", (e) => {
+  const promoBtn = promoForm.querySelector("button");
+  promoForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const raw = document.getElementById("promoInput").value.trim().toUpperCase();
     note.classList.remove("is-ok", "is-err");
     if (!raw) { promo = null; note.textContent = ""; renderCart(); return; }
-    const d = DISCOUNTS[raw];
+
+    // The check is a round trip now, so say so rather than looking frozen.
+    note.textContent = "Checking…";
+    if (promoBtn) promoBtn.disabled = true;
+    const d = await lookupDiscount(raw);
+    if (promoBtn) promoBtn.disabled = false;
+
     if (!d) {
       promo = null;
       note.textContent = "That code isn't valid";
       note.classList.add("is-err");
     } else {
-      promo = { code: raw, percent: d.percent, label: d.label };
+      promo = { code: d.code, percent: d.percent, label: d.label };
       note.textContent = `${d.label} applied`;
       note.classList.add("is-ok");
     }
@@ -780,16 +804,6 @@ burger.addEventListener("click", () => {
   mobileMenu.classList.toggle("open");
 });
 mobileMenu.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeMobile));
-
-// ---- Newsletter (index.html only) ----
-const newsForm = document.getElementById("newsForm");
-if (newsForm) {
-  newsForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    document.getElementById("newsNote").textContent = "Thanks for subscribing — exclusive offers are on the way.";
-    e.target.reset();
-  });
-}
 
 // ---- Reveal on scroll ----
 const io = new IntersectionObserver((entries) => {

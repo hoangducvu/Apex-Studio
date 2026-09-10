@@ -8,7 +8,7 @@
   <link rel="icon" href="assets/lumla/logo.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://js.stripe.com/v3/" defer></script>
 </head>
@@ -20,7 +20,6 @@
     <!-- Announcement bar (rotating) -->
     <div class="announce" id="announce">
       <div class="announce__msg is-active">EVERYWHERE YOU WANNA SEE</div>
-      <div class="announce__msg">USE CODE LUMLA FOR 10% OFF</div>
       <div class="announce__msg">FAST SHIPPING · PRICES IN EUR €</div>
     </div>
 
@@ -37,7 +36,6 @@
         </nav>
         <a href="index.html" class="nav__logo" aria-label="LUMLA GLASSES home"><img src="assets/lumla/logo.png" alt="LUMLA GLASSES" /></a>
         <nav class="nav__links nav__links--right">
-          <a href="shipping.html">Shipping</a>
           <button class="nav__cart" id="cartOpen" aria-label="Open cart">
             Cart <span class="nav__cart-count" id="cartCount">0</span>
           </button>
@@ -50,7 +48,6 @@
       <a href="shop.html?filter=best-seller">Best Seller</a>
         <a href="shop.html">Catalog</a>
       <a href="contact.html">Contact</a>
-      <a href="shipping.html">Shipping</a>
       <a href="#" id="mobileCart">Cart (<span id="mobileCartCount">0</span>)</a>
     </div>
   </div>
@@ -71,68 +68,26 @@
       </div>
     </section>
 
-    <!-- ============ TICKER ============ -->
-    <div class="ticker" aria-hidden="true">
-      <div class="ticker__track">
-        <span>UV400 Protection</span><span>Freesize Fit</span><span>Shipped From Malta</span><span>Protective Case Included</span><span>Prices In EUR</span>
-        <span>UV400 Protection</span><span>Freesize Fit</span><span>Shipped From Malta</span><span>Protective Case Included</span><span>Prices In EUR</span>
+    <!-- ============ MARQUEE ============ -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>UV400 Protection</span><span>Freesize Fit</span><span>Handpicked Frames</span><span>Fast EU Shipping</span><span>Protective Case Included</span>
+        <span>UV400 Protection</span><span>Freesize Fit</span><span>Handpicked Frames</span><span>Fast EU Shipping</span><span>Protective Case Included</span>
       </div>
     </div>
-
-    <!-- ============ DROP PANEL ============ -->
-    <section class="drop">
-      <div class="drop__inner">
-        <div class="drop__left">
-          <span class="tag tag--red">Drop 001 · Live now</span>
-          <h2 class="drop__title">See<br /><em>Loud</em></h2>
-          <p class="drop__lede">
-            Frames picked for the street, not the showroom. One price per pair,
-            no upsells, no lens menus — what you see is what lands on your doorstep.
-          </p>
-          <div class="drop__cta">
-            <a href="shop.html" class="btn btn--red">Shop the drop <span>→</span></a>
-            <a href="shop.html?filter=best-seller" class="btn btn--ghost">Best sellers</a>
-          </div>
-        </div>
-        <ol class="drop__specs">
-          <li><b>01</b><span>UV400 lenses</span><i>Standard on every pair</i></li>
-          <li><b>02</b><span>Freesize fit</span><i>One size, built to sit level</i></li>
-          <li><b>03</b><span>Case + cloth</span><i>In the box, not an add-on</i></li>
-          <li><b>04</b><span>Free over &euro;90</span><i>Standard postage waived</i></li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- ============ BEST SELLERS ============ -->
-    <section class="section" id="shop">
-      <div class="sec-head">
-        <div class="sec-head__left">
-          <span class="sec-kicker">Best Sellers</span>
-          <h2 class="sec-title">Moving<br />fastest</h2>
-          <p class="sec-desc">The frames that keep selling out. Every pair ships with a protective case and cleaning cloth.</p>
-        </div>
-        <a href="shop.html" class="sec-link">View All →</a>
-      </div>
-      <div class="grid" id="productGrid">
-        <div class="grid-loading">Loading frames…</div>
-      </div>
-      <div class="shop-more">
-        <a href="shop.html" class="btn btn--outline">Browse the full catalog →</a>
-      </div>
-    </section>
 
     <!-- ============ COLLECTIONS ============ -->
     <section class="section section--dark" id="collections">
       <div class="sec-head">
         <div class="sec-head__left">
           <span class="sec-kicker">Collections</span>
-          <h2 class="sec-title">Three lines,<br />one idea</h2>
-          <p class="sec-desc">Frames that read clean from every angle. Pick the weight that matches how you move.</p>
+          <h2 class="sec-title">LLA Collection</h2>
+          <p class="sec-desc">Three lines, one idea — frames that read clean from every angle. Choose the weight that matches how you move.</p>
         </div>
         <a href="shop.html" class="sec-link">All Frames →</a>
       </div>
-      <div class="collections collections--split">
-        <a class="collection-card collection-card--lead" href="shop.html?filter=metallic" data-collection="Metallic" data-reveal>
+      <div class="collections">
+        <a class="collection-card" href="shop.html?filter=metallic" data-collection="Metallic" data-reveal>
           <span class="collection-card__no">01</span>
           <img src="assets/lumla/collection-metallic.avif" alt="Metallic collection" loading="lazy" />
           <div class="collection-card__label">
@@ -158,82 +113,50 @@
         </a>
       </div>
     </section>
-
-    <!-- ============ DELIVERY ============ -->
-    <section class="section" id="delivery">
+    <!-- ============ BEST SELLERS ============ -->
+    <section class="section" id="shop">
       <div class="sec-head">
         <div class="sec-head__left">
-          <span class="sec-kicker">Delivery</span>
-          <h2 class="sec-title">Ships from<br />Malta</h2>
-          <p class="sec-desc">Posted with MaltaPost from Sliema. Pick your service at checkout — the rate is the same wherever it lands.</p>
+          <span class="sec-kicker">Best Sellers</span>
+          <h2 class="sec-title">Made for everyday<br />confidence</h2>
+          <p class="sec-desc">Every frame ships with a protective case and cleaning cloth.</p>
         </div>
-        <a href="shipping.html" class="sec-link">Shipping policy →</a>
+        <a href="shop.html" class="sec-link">View All →</a>
       </div>
-      <div class="ship-cards">
-        <article class="ship-card ship-card--lead" data-reveal>
-          <span class="ship-card__tag">MT</span>
-          <h3 class="ship-card__place">Malta</h3>
-          <p class="ship-card__eta"><b>2–3</b><small>days</small></p>
-          <p class="ship-card__note">Local delivery once your order is posted. Sliema pickup on request.</p>
-        </article>
-        <article class="ship-card" data-reveal>
-          <span class="ship-card__tag">INT</span>
-          <h3 class="ship-card__place">International</h3>
-          <p class="ship-card__eta"><b>10–20</b><small>days</small></p>
-          <p class="ship-card__note">Everywhere else we ship. Tracked &amp; signed available at checkout.</p>
-        </article>
-        <article class="ship-card ship-card--flat" data-reveal>
-          <span class="ship-card__tag">€</span>
-          <h3 class="ship-card__place">Flat rate</h3>
-          <p class="ship-card__eta"><b>5.95</b><small>standard</small></p>
-          <p class="ship-card__note">Free on orders over &euro;90. Tracked &amp; signed &euro;13.95, or &euro;8 over the threshold.</p>
-        </article>
+      <div class="grid" id="productGrid">
+        <div class="grid-loading">Loading frames…</div>
+      </div>
+      <div class="shop-more">
+        <a href="shop.html" class="btn btn--outline">Browse the full catalog →</a>
       </div>
     </section>
 
-    <!-- ============ SPEC LEDGER ============ -->
+    <!-- ============ VALUE STRIP ============ -->
     <section class="section section--flush">
-      <div class="specs">
-        <div class="specs__item">
-          <span class="specs__no">01</span>
+      <div class="strip">
+        <div class="strip__item">
+          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l3 6-9 12L3 9l3-6Z"/><path d="M3 9h18M9 3 6 9l6 12 6-12-3-6"/></svg>
           <strong>Premium Quality</strong>
-          <span class="specs__text">Durable frames crafted for everyday wear.</span>
+          <span>Durable frames crafted for everyday wear.</span>
         </div>
-        <div class="specs__item">
-          <span class="specs__no">02</span>
+        <div class="strip__item">
+          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2.5 1.5 5-.6 9.5"/><path d="M2 22c1.5-4 4-7 8-9"/></svg>
           <strong>Lightweight Comfort</strong>
-          <span class="specs__text">Designed to fit naturally and feel light all day.</span>
+          <span>Designed to fit naturally and feel light all day.</span>
         </div>
-        <div class="specs__item">
-          <span class="specs__no">03</span>
-          <strong>UV400 Lenses</strong>
-          <span class="specs__text">Full protection on every pair, no upgrade needed.</span>
+        <div class="strip__item">
+          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/></svg>
+          <strong>Fast Shipping</strong>
+          <span>Fast and reliable delivery across the EU.</span>
         </div>
-        <div class="specs__item">
-          <span class="specs__no">04</span>
+        <div class="strip__item">
+          <svg class="strip__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7.5 4.3 9 5.2v9L12 21l-9-5.2v-9L7.5 4.3Z"/><path d="m3.3 7 8.7 5 8.7-5M12 21v-9"/></svg>
           <strong>Easy Returns</strong>
-          <span class="specs__text">30 days from delivery — refund or exchange.</span>
+          <span>Shop with confidence — simple return policy.</span>
         </div>
       </div>
     </section>
 
-    <!-- ============ NEWSLETTER ============ -->
-    <section class="section newsletter">
-      <div class="newsletter__inner">
-        <div>
-          <span class="sec-kicker">Subscribe</span>
-          <h2 class="sec-title">Join the<br />email list</h2>
-        </div>
-        <div>
-          <p class="sec-desc" style="margin-bottom:20px">Exclusive drops, restocks and offers — straight to your inbox.</p>
-          <form class="newsletter__form" id="newsForm">
-            <input type="email" placeholder="Email address" required aria-label="Email address" />
-            <button type="submit" class="btn">Sign Up →</button>
-          </form>
-          <p class="newsletter__note" id="newsNote"></p>
-        </div>
-      </div>
-    </section>
   </main>
 
   <!-- FOOTER -->
@@ -269,7 +192,6 @@
         <a href="https://www.facebook.com/profile.php?id=61591255014562" target="_blank" rel="noopener">Facebook</a>
       </div>
     </div>
-    <div class="footer__giant" aria-hidden="true">LUMLA <em>GLASSES</em></div>
     <div class="footer__bottom">
       <p>© <span id="year"></span> LUMLA GLASSES</p>
       <nav class="footer__legal">

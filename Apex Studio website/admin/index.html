@@ -391,6 +391,67 @@
 
     .btn-delete:hover { background: rgba(255,82,82,0.18); }
 
+    /* ── DISCOUNT CODES ─────────────────────────────────────────────────── */
+    /* Edited in place: every cell is an input, one Save writes the lot. */
+    .code-input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      padding: 8px 10px;
+      outline: none;
+    }
+    .code-input:focus { border-color: var(--accent); }
+    .code-input--code { text-transform: uppercase; letter-spacing: 0.08em; }
+    .code-input--pct { max-width: 96px; }
+
+    .code-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .code-live input { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
+    .code-live.is-on { color: var(--success); }
+
+    .codes-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-save-codes {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-save-codes:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-save-codes:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .codes-note {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 10px;
+      min-height: 1em;
+    }
+    .codes-note.is-ok  { color: var(--success); }
+    .codes-note.is-err { color: var(--danger); }
+
     /* ── MODAL ─────────────────────────────────────────────────────────── */
     .modal-overlay {
       display: none;
@@ -771,6 +832,32 @@
         </table>
       </div>
 
+      <!-- Discount codes -->
+      <div class="section-header">
+        <h2>Discount Codes</h2>
+        <div class="codes-bar">
+          <button class="btn-save-codes" id="saveCodesBtn">Save Codes</button>
+          <button class="btn-add" id="addCodeBtn">+ Add Code</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="codesTable">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Discount %</th>
+              <th>Label shown at checkout</th>
+              <th>Live</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="codesTbody">
+            <tr class="loading-row"><td colspan="5">LOADING...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="codes-note" id="codesNote"></p>
+
       <!-- Orders -->
       <div class="section-header">
         <h2>Recent Orders</h2>
@@ -983,6 +1070,7 @@
     function loadAll() {
       loadStats();
       loadProducts();
+      loadCodes();
       loadOrders();
     }
 
@@ -1167,6 +1255,129 @@
       }
       setTimeout(() => (btn.textContent = label), 1400);
     }
+
+    /* ── Discount codes ─────────────────────────────────────────────────
+       The table is the form: each row holds the inputs for one code and
+       Save writes the whole list back, so reordering or fixing a typo is
+       one round trip rather than one per row. Nothing is written until
+       Save is pressed. */
+    const codesTbody  = document.getElementById("codesTbody");
+    const codesNote   = document.getElementById("codesNote");
+    const addCodeBtn  = document.getElementById("addCodeBtn");
+    const saveCodesBtn = document.getElementById("saveCodesBtn");
+
+    function codeRowHtml(c = {}) {
+      const live = c.active !== false;
+      return `
+        <tr data-code-row>
+          <td><input class="code-input code-input--code" data-f="code" value="${escHtml(c.code || "")}"
+                     placeholder="SUMMER10" maxlength="32" /></td>
+          <td><input class="code-input code-input--pct" data-f="percent" type="number"
+                     value="${c.percent ?? ""}" placeholder="10" min="1" max="100" step="1" /></td>
+          <td><input class="code-input" data-f="label" value="${escHtml(c.label || "")}"
+                     placeholder="Leave blank to generate" maxlength="80" /></td>
+          <td>
+            <label class="code-live${live ? " is-on" : ""}">
+              <input type="checkbox" data-f="active"${live ? " checked" : ""} />
+              <span>${live ? "Live" : "Off"}</span>
+            </label>
+          </td>
+          <td><button class="btn-delete" data-del-code>Delete</button></td>
+        </tr>`;
+    }
+
+    function renderCodes(codes) {
+      codesTbody.innerHTML = codes.length
+        ? codes.map(codeRowHtml).join("")
+        : `<tr class="loading-row"><td colspan="5">No codes yet — add one.</td></tr>`;
+    }
+
+    async function loadCodes() {
+      try {
+        const { codes } = await apiFetch("/api/discounts");
+        renderCodes(codes || []);
+      } catch (e) {
+        codesTbody.innerHTML = `<tr class="loading-row"><td colspan="5">Could not load codes.</td></tr>`;
+        setCodesNote(e.message, "is-err");
+      }
+    }
+
+    function setCodesNote(text, cls = "") {
+      codesNote.textContent = text;
+      codesNote.className = "codes-note" + (cls ? " " + cls : "");
+    }
+
+    // Reads the table back out — the rows are the source of truth on save.
+    function collectCodes() {
+      return [...codesTbody.querySelectorAll("[data-code-row]")].map((tr) => {
+        const get = (f) => tr.querySelector(`[data-f="${f}"]`);
+        return {
+          code:    get("code").value.trim().toUpperCase(),
+          percent: Number(get("percent").value),
+          label:   get("label").value.trim(),
+          active:  get("active").checked,
+        };
+      });
+    }
+
+    addCodeBtn.addEventListener("click", () => {
+      if (!codesTbody.querySelector("[data-code-row]")) codesTbody.innerHTML = "";
+      codesTbody.insertAdjacentHTML("beforeend", codeRowHtml({ active: true }));
+      codesTbody.querySelector("tr:last-child [data-f='code']").focus();
+      setCodesNote("Unsaved changes — press Save Codes.", "");
+    });
+
+    codesTbody.addEventListener("click", (e) => {
+      if (!e.target.closest("[data-del-code]")) return;
+      e.target.closest("tr").remove();
+      if (!codesTbody.querySelector("[data-code-row]")) renderCodes([]);
+      setCodesNote("Unsaved changes — press Save Codes.", "");
+    });
+
+    // Keep the Live label honest as it is toggled.
+    codesTbody.addEventListener("change", (e) => {
+      const box = e.target.closest("[data-f='active']");
+      if (box) {
+        const wrap = box.closest(".code-live");
+        wrap.classList.toggle("is-on", box.checked);
+        wrap.querySelector("span").textContent = box.checked ? "Live" : "Off";
+      }
+      setCodesNote("Unsaved changes — press Save Codes.", "");
+    });
+
+    saveCodesBtn.addEventListener("click", async () => {
+      const codes = collectCodes();
+
+      // Catch the two mistakes the API would otherwise silently drop.
+      const bad = codes.find((c) => !c.code || !(c.percent > 0 && c.percent <= 100));
+      if (bad) {
+        setCodesNote(`"${bad.code || "(blank)"}" needs a code and a percentage between 1 and 100.`, "is-err");
+        return;
+      }
+      const seen = new Set();
+      const dupe = codes.find((c) => seen.size === seen.add(c.code).size);
+      if (dupe) {
+        setCodesNote(`"${dupe.code}" is listed twice.`, "is-err");
+        return;
+      }
+
+      saveCodesBtn.disabled = true;
+      saveCodesBtn.textContent = "Saving...";
+      try {
+        const res = await apiFetch("/api/discounts", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ codes }),
+        });
+        renderCodes(res.codes || []);
+        setCodesNote(`Saved — ${(res.codes || []).length} code(s).`, "is-ok");
+      } catch (e) {
+        setCodesNote(e.message, "is-err");
+      } finally {
+        saveCodesBtn.disabled = false;
+        saveCodesBtn.textContent = "Save Codes";
+      }
+    });
 
     async function loadOrders() {
       const tbody = document.getElementById("ordersTbody");
