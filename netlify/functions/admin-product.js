@@ -60,11 +60,20 @@ exports.handler = async (event) => {
     return json(200, data);
   }
 
-  /* DELETE — deactivate by default, erase the row only when the caller asks
-   * for it outright. The admin panel's Deactivate button sends the plain
-   * request; its Delete button sets `x-delete-mode: permanent` (a header, so
-   * it survives both Netlify's redirects and Vercel's catch-all router).
-   * `?permanent=1` does the same, for anything calling the API by hand. */
+  /* POST /products/:id/delete — erase the row for good.
+   *
+   * Not the DELETE method: DELETE never reaches this function in production
+   * (it 404s at the platform, which is why the old soft delete looked like it
+   * did nothing), while PATCH on /:id/stock and PUT on /:id both arrive fine.
+   * So permanent delete borrows the route shape that is known to work. */
+  if (event.httpMethod === "POST" && /\/delete\/?$/.test(event.path || "")) {
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (error) return json(500, { error: error.message });
+    return json(200, { ok: true, deleted: "permanent", id });
+  }
+
+  /* DELETE — kept for anything already calling it. Deactivates by default;
+   * `x-delete-mode: permanent` (or ?permanent=1) erases the row instead. */
   if (event.httpMethod === "DELETE") {
     const headers = event.headers || {};
     const mode = headers["x-delete-mode"] || headers["X-Delete-Mode"] || "";

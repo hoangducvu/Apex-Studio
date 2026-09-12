@@ -553,26 +553,6 @@
       margin-top: 2px;
     }
 
-    .danger-confirm {
-      width: 100%;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      font-family: 'Space Mono', monospace;
-      font-size: 0.8rem;
-      letter-spacing: 0.12em;
-      padding: 10px 12px;
-      margin-top: 8px;
-    }
-
-    .danger-confirm:focus { outline: none; border-color: var(--danger); }
-
-    .danger-label {
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-
     .danger-error {
       color: var(--danger);
       font-size: 0.75rem;
@@ -1088,13 +1068,10 @@
         <strong>Deactivate</strong> instead.
       </div>
 
-      <label class="danger-label" for="dangerConfirm">Type DELETE to confirm</label>
-      <input type="text" class="danger-confirm" id="dangerConfirm"
-             autocomplete="off" spellcheck="false" placeholder="DELETE" />
       <div class="danger-error" id="dangerError"></div>
 
       <div class="modal-actions">
-        <button type="button" class="btn-danger" id="dangerConfirmBtn" disabled>Delete forever</button>
+        <button type="button" class="btn-danger" id="dangerConfirmBtn">Delete forever</button>
         <button type="button" class="btn-cancel" id="dangerCancelBtn">Cancel</button>
       </div>
     </div>
@@ -1607,7 +1584,6 @@
      */
     const dangerOverlay    = document.getElementById("dangerOverlay");
     const dangerProduct    = document.getElementById("dangerProduct");
-    const dangerConfirm    = document.getElementById("dangerConfirm");
     const dangerConfirmBtn = document.getElementById("dangerConfirmBtn");
     const dangerCancelBtn  = document.getElementById("dangerCancelBtn");
     const dangerCloseBtn   = document.getElementById("dangerClose");
@@ -1626,27 +1602,17 @@
           <div class="danger-product__id">${escHtml(p.id)}</div>
         </div>`;
 
-      dangerConfirm.value = "";
       dangerError.textContent = "";
-      dangerConfirmBtn.disabled = true;
+      dangerConfirmBtn.disabled = false;
       dangerConfirmBtn.textContent = "Delete forever";
       dangerOverlay.classList.add("open");
-      dangerConfirm.focus();
+      dangerConfirmBtn.focus();
     }
 
     function closeDangerModal() {
       dangerOverlay.classList.remove("open");
       pendingDeleteId = "";
     }
-
-    // The button unlocks only once DELETE has been typed in full.
-    dangerConfirm.addEventListener("input", () => {
-      dangerConfirmBtn.disabled = dangerConfirm.value.trim().toUpperCase() !== "DELETE";
-    });
-
-    dangerConfirm.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !dangerConfirmBtn.disabled) deleteProductForever();
-    });
 
     dangerConfirmBtn.addEventListener("click", deleteProductForever);
     dangerCancelBtn.addEventListener("click", closeDangerModal);
@@ -1663,10 +1629,10 @@
       dangerConfirmBtn.textContent = "DELETING...";
       dangerError.textContent = "";
       try {
-        // This header is what turns DELETE from a deactivate into an erase.
-        await apiFetch(`/api/admin/products/${encodeURIComponent(id)}`, {
-          method: "DELETE",
-          headers: { "x-delete-mode": "permanent" },
+        // POST, not DELETE — the DELETE method 404s before reaching the
+        // function in production; this route shape is the one that arrives.
+        await apiFetch(`/api/admin/products/${encodeURIComponent(id)}/delete`, {
+          method: "POST",
         });
         closeDangerModal();
         loadAll();

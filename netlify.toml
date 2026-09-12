@@ -7,6 +7,11 @@
 
 # ── API redirects (more specific routes first) ──────────────────────────────
 [[redirects]]
+  from   = "/api/admin/products/:id/delete"
+  to     = "/.netlify/functions/admin-product?id=:id"
+  status = 200
+
+[[redirects]]
   from   = "/api/admin/products/:id/stock"
   to     = "/.netlify/functions/admin-stock?id=:id"
   status = 200

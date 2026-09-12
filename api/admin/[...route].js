@@ -12,6 +12,7 @@
  *   /api/admin/products
  *   /api/admin/products/:id
  *   /api/admin/products/:id/stock
+ *   /api/admin/products/:id/delete
  *
  * Netlify still routes these itself through netlify.toml, so its redirects
  * and the handlers underneath stay exactly as they were.
@@ -56,7 +57,8 @@ function matchRoute(pathname) {
   if (!id) return null;
 
   if (rest.length === 2) return { handler: handlers.product, id };
-  if (rest.length === 3 && rest[2] === "stock") return { handler: handlers.stock, id };
+  if (rest.length === 3 && rest[2] === "stock")  return { handler: handlers.stock, id };
+  if (rest.length === 3 && rest[2] === "delete") return { handler: handlers.product, id };
 
   return null;
 }
