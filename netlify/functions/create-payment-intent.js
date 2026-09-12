@@ -17,19 +17,27 @@ const COUNTRY_CODES = {
    sits in the 101–300 g band: €5.81 untracked, €13.29 tracked. These rates
    round that up a little to absorb two-pair orders (301–500 g).
 
-   Over FREE_SHIPPING_OVER the standard rate is waived, and tracked costs the
-   difference — so the shop spends the same either way. */
+   Two things waive the standard rate: a Malta address, a local hop the shop
+   absorbs, and an order over FREE_SHIPPING_OVER. Tracked costs the difference
+   either way — so the shop spends the same. */
 const SHIPPING_OPTIONS = {
   standard: { price: 5.95,  label: "Standard (untracked)" },
   tracked:  { price: 13.95, label: "Tracked & signed" },
 };
 const FREE_SHIPPING_OVER = 90;
 
-// Charge for `method`, given what the customer pays for the goods themselves.
-function shippingCost(method, goodsTotal) {
+// Anything that is not Malta is treated as international, matching the
+// storefront. Read from the address the payment is created with, never from
+// anything the browser asserts about the price.
+function shipsFree(country) {
+  return String(country || "").trim().toLowerCase() === "malta";
+}
+
+// Charge for `method`, given the goods total and where the parcel is going.
+function shippingCost(method, goodsTotal, country) {
   const opt = SHIPPING_OPTIONS[method] || SHIPPING_OPTIONS.standard;
-  const waived = goodsTotal >= FREE_SHIPPING_OVER ? SHIPPING_OPTIONS.standard.price : 0;
-  return round2(Math.max(0, opt.price - waived));
+  const free = shipsFree(country) || goodsTotal >= FREE_SHIPPING_OVER;
+  return round2(Math.max(0, opt.price - (free ? SHIPPING_OPTIONS.standard.price : 0)));
 }
 
 /* Discount codes are managed in the admin panel and read here from the same
@@ -79,7 +87,7 @@ exports.handler = async (event) => {
     const goods = round2(subtotal - discount);
 
     const method = SHIPPING_OPTIONS[shippingMethod] ? shippingMethod : "standard";
-    const postage = shippingCost(method, goods);
+    const postage = shippingCost(method, goods, shipping?.country);
     const total = round2(goods + postage);
 
     if (!(total > 0)) return json(400, { error: "Invalid amount" });

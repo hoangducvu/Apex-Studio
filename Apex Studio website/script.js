@@ -79,13 +79,17 @@ function deliveryLine(country = chosenCountry()) {
 
 let shipMethod = "standard";
 
-/* Over the threshold the standard rate is waived, and tracked costs the
-   difference — the shop spends the same either way, so upgrading stays
-   worth it on a big order. */
-function shippingCost(method = shipMethod, goods = cartTotal()) {
+/* Two things waive the standard rate: a Malta address, which is a local hop
+   the shop absorbs, and an order over the threshold. Everywhere else pays the
+   normal fee. Either way tracked costs the difference, so the shop spends the
+   same and upgrading stays worth it.
+
+   Mirrored in create-payment-intent.js, which recalculates from the address
+   Stripe is given — this is only what the customer is shown. */
+function shippingCost(method = shipMethod, goods = cartTotal(), country = chosenCountry()) {
   const opt = SHIPPING[method] || SHIPPING.standard;
-  const waived = goods >= FREE_SHIPPING_OVER ? SHIPPING.standard.price : 0;
-  return Math.round(Math.max(0, opt.price - waived) * 100) / 100;
+  const free = destKey(country) === "malta" || goods >= FREE_SHIPPING_OVER;
+  return Math.round(Math.max(0, opt.price - (free ? SHIPPING.standard.price : 0)) * 100) / 100;
 }
 
 // What the card is actually charged: goods after discount, plus postage.
@@ -338,7 +342,7 @@ function renderProductDetail() {
         <li><span>Fit</span> Freesize — suits most face shapes</li>
         <li><span>Lenses</span> UV400 protection</li>
         <li><span>Includes</span> Protective case &amp; cleaning cloth</li>
-        <li><span>Shipping</span> From ${fmt(SHIPPING.standard.price)} · free over ${fmt(FREE_SHIPPING_OVER)}</li>
+        <li><span>Shipping</span> Free within Malta · international from ${fmt(SHIPPING.standard.price)}</li>
         <li><span>Delivery</span> ${deliveryLine()}</li>
       </ul>
     </div>`;
@@ -1021,7 +1025,8 @@ function renderCheckoutSummary() {
   }
   if (coShipNote) {
     const short = Math.round((FREE_SHIPPING_OVER - cartTotal()) * 100) / 100;
-    coShipNote.hidden = short <= 0;
+    // Nothing to spend up to when the address already ships free.
+    coShipNote.hidden = short <= 0 || destKey(chosenCountry()) === "malta";
     if (short > 0) coShipNote.textContent = `Spend ${fmtEur(short)} more for free standard shipping`;
   }
   coGrandTotal.textContent = fmtEur(orderTotal());
@@ -1070,7 +1075,10 @@ document.getElementById("coShipOpts")?.addEventListener("change", (e) => {
 });
 
 // Destination sets the transit window, so requote the options when it changes.
-document.getElementById("coCountry")?.addEventListener("change", renderShipOptions);
+document.getElementById("coCountry")?.addEventListener("change", () => {
+  renderShipOptions();
+  renderCheckoutSummary();   // the country decides the postage now, not just the ETA
+});
 
 // Step 1 → 2: validate info, then create PaymentIntent & mount Stripe element
 document.getElementById("coToPayment").addEventListener("click", async () => {
