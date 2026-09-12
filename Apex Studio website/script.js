@@ -296,7 +296,10 @@ function renderProductDetail() {
         ${siblings.map((v) => `
           <a class="swatch${v.id === p.id ? " is-active" : ""}" href="/products/${encodeURIComponent(v.id)}"
              data-preview="${esc(imgUrl(v))}" title="${esc(colorOf(v))} — ${esc(fmt(v.price))}">
-            <img src="${esc(imgUrl(v))}" alt="${esc(colorOf(v))}" loading="lazy" />
+            <span class="swatch__thumb">
+              <img src="${esc(imgUrl(v))}" alt="${esc(colorOf(v))}" loading="lazy" />
+              ${v.badge ? `<span class="swatch__badge ${/sale/i.test(v.badge) ? "swatch__badge--sale" : ""}">${esc(v.badge)}</span>` : ""}
+            </span>
           </a>`).join("")}
       </div>
     </div>` : "";
@@ -400,7 +403,10 @@ function cardHtml(group) {
       ${group.items.map((v, i) => `
         <button type="button" class="swatch${i === 0 ? " is-active" : ""}"
                 data-variant="${esc(v.id)}" title="${esc(colorOf(v))}" aria-label="${esc(colorOf(v))}">
-          <img src="${esc(imgUrl(v))}" alt="${esc(colorOf(v))}" loading="lazy" />
+          <span class="swatch__thumb">
+            <img src="${esc(imgUrl(v))}" alt="${esc(colorOf(v))}" loading="lazy" />
+            ${v.badge ? `<span class="swatch__badge ${/sale/i.test(v.badge) ? "swatch__badge--sale" : ""}">${esc(v.badge)}</span>` : ""}
+          </span>
         </button>`).join("")}
     </div>` : "";
 
