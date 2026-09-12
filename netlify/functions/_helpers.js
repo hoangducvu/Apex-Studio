@@ -7,7 +7,7 @@ const supabase = createClient(
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type, x-admin-key",
+  "Access-Control-Allow-Headers": "Content-Type, x-admin-key, x-delete-mode",
   "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
 };
 

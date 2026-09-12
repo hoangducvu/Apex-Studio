@@ -60,14 +60,30 @@ exports.handler = async (event) => {
     return json(200, data);
   }
 
-  // DELETE — soft delete (set active = false)
+  /* DELETE — deactivate by default, erase the row only when the caller asks
+   * for it outright. The admin panel's Deactivate button sends the plain
+   * request; its Delete button sets `x-delete-mode: permanent` (a header, so
+   * it survives both Netlify's redirects and Vercel's catch-all router).
+   * `?permanent=1` does the same, for anything calling the API by hand. */
   if (event.httpMethod === "DELETE") {
+    const headers = event.headers || {};
+    const mode = headers["x-delete-mode"] || headers["X-Delete-Mode"] || "";
+    const flag = (event.queryStringParameters || {}).permanent;
+    const permanent = String(mode).toLowerCase() === "permanent" ||
+      flag === "1" || flag === "true";
+
+    if (permanent) {
+      const { error } = await supabase.from("products").delete().eq("id", id);
+      if (error) return json(500, { error: error.message });
+      return json(200, { ok: true, deleted: "permanent", id });
+    }
+
     const { error } = await supabase
       .from("products")
       .update({ active: false })
       .eq("id", id);
     if (error) return json(500, { error: error.message });
-    return json(200, { ok: true });
+    return json(200, { ok: true, deleted: "deactivated", id });
   }
 
   return json(405, { error: "Method not allowed" });

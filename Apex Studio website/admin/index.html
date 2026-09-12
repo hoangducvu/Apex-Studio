@@ -363,7 +363,7 @@
     }
 
     /* Action buttons */
-    .btn-edit, .btn-delete {
+    .btn-edit, .btn-delete, .btn-toggle {
       border: none;
       border-radius: var(--radius);
       font-size: 0.75rem;
@@ -390,6 +390,17 @@
     }
 
     .btn-delete:hover { background: rgba(255,82,82,0.18); }
+
+    /* Deactivate / Activate — reversible, so it reads quieter than Delete */
+    .btn-toggle {
+      background: var(--bg3);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      margin-right: 6px;
+    }
+
+    .btn-toggle:hover { color: var(--text); border-color: var(--muted); }
+    .btn-toggle:disabled, .btn-delete:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* ── DISCOUNT CODES ─────────────────────────────────────────────────── */
     /* Edited in place: every cell is an input, one Save writes the lot. */
@@ -499,6 +510,93 @@
     }
 
     .modal-close:hover { color: var(--text); }
+
+    /* ── DANGER MODAL ───────────────────────────────────────────────────── */
+    /* Permanent delete is the one action here nothing can undo, so it gets a
+       modal of its own rather than a browser confirm() the eye skips past. */
+    .modal.danger { max-width: 460px; border-color: rgba(255,82,82,0.45); }
+    .modal.danger h3 { color: var(--danger); }
+
+    .danger-body {
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: var(--text);
+      margin-bottom: 18px;
+    }
+
+    .danger-body strong { color: var(--danger); }
+
+    .danger-product {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      margin-bottom: 18px;
+    }
+
+    .danger-product img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      flex: none;
+    }
+
+    .danger-product__name { font-size: 0.85rem; }
+    .danger-product__id {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .danger-confirm {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      padding: 10px 12px;
+      margin-top: 8px;
+    }
+
+    .danger-confirm:focus { outline: none; border-color: var(--danger); }
+
+    .danger-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .danger-error {
+      color: var(--danger);
+      font-size: 0.75rem;
+      min-height: 1em;
+      margin-top: 10px;
+    }
+
+    .btn-danger {
+      flex: 1;
+      background: var(--danger);
+      color: #0b0b0d;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 12px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-danger:hover:not(:disabled) { opacity: 0.85; }
+    .btn-danger:disabled { opacity: 0.35; cursor: not-allowed; }
 
     .form-row {
       display: grid;
@@ -972,6 +1070,36 @@
     </div>
   </div>
 
+  <!-- ── DELETE FOREVER — confirmation ─────────────────────────────────── -->
+  <div class="modal-overlay" id="dangerOverlay">
+    <div class="modal danger">
+      <button class="modal-close" id="dangerClose">&#10005;</button>
+      <h3>Delete forever</h3>
+
+      <div class="danger-product" id="dangerProduct"></div>
+
+      <div class="danger-body">
+        This <strong>permanently erases</strong> the product from the database.
+        Its images, stock count and settings go with it, and there is
+        <strong>no undo</strong>.
+        <br /><br />
+        Past orders keep their own copy of the item, so your sales history is
+        unaffected. If you only want it off the storefront, cancel and use
+        <strong>Deactivate</strong> instead.
+      </div>
+
+      <label class="danger-label" for="dangerConfirm">Type DELETE to confirm</label>
+      <input type="text" class="danger-confirm" id="dangerConfirm"
+             autocomplete="off" spellcheck="false" placeholder="DELETE" />
+      <div class="danger-error" id="dangerError"></div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="dangerConfirmBtn" disabled>Delete forever</button>
+        <button type="button" class="btn-cancel" id="dangerCancelBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     /* ── State ──────────────────────────────────────────────────────────── */
     let adminKey = sessionStorage.getItem("lumlaAdminKey") || "";
@@ -1181,7 +1309,9 @@
           <td style="white-space:nowrap">
             <button class="btn-edit" onclick="openEditModalById('${escHtml(p.id)}')">Edit</button>
             <button class="btn-edit" onclick="copyImageLink(this, '${escHtml(p.image)}')" title="Copy the image URL">Copy link</button>
-            <button class="btn-delete" onclick="deleteProduct('${escHtml(p.id)}', '${escHtml(p.name)}')">Delete</button>
+            <button class="btn-toggle" onclick="setProductActive('${escHtml(p.id)}', ${p.active ? "false" : "true"})"
+                    title="${p.active ? "Hide from the storefront — keeps the product" : "Show on the storefront again"}">${p.active ? "Deactivate" : "Activate"}</button>
+            <button class="btn-delete" onclick="confirmDeleteProduct('${escHtml(p.id)}')" title="Erase this product forever">Delete</button>
           </td>
         </tr>`;
       }).join("");
@@ -1454,14 +1584,96 @@
       }
     }
 
-    /* ── Delete product ─────────────────────────────────────────────────── */
-    async function deleteProduct(id, name) {
-      if (!confirm(`Are you sure you want to deactivate "${name}"? It will be hidden from the store.`)) return;
+    /* ── Deactivate / Activate ──────────────────────────────────────────────
+     * Reversible: the row stays in the database, the storefront just stops
+     * showing it. No confirmation, because the same button puts it back.
+     */
+    async function setProductActive(id, active) {
       try {
-        await apiFetch(`/api/admin/products/${id}`, { method: "DELETE" });
+        await apiFetch(`/api/admin/products/${encodeURIComponent(id)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ active }),
+        });
         loadAll();
       } catch(e) {
-        alert("Delete failed: " + e.message);
+        alert((active ? "Activate" : "Deactivate") + " failed: " + e.message);
+      }
+    }
+
+    /* ── Delete forever ─────────────────────────────────────────────────────
+     * The one action here nothing can undo, so it gets its own modal and asks
+     * for DELETE to be typed out rather than a confirm() the eye skips past.
+     */
+    const dangerOverlay    = document.getElementById("dangerOverlay");
+    const dangerProduct    = document.getElementById("dangerProduct");
+    const dangerConfirm    = document.getElementById("dangerConfirm");
+    const dangerConfirmBtn = document.getElementById("dangerConfirmBtn");
+    const dangerCancelBtn  = document.getElementById("dangerCancelBtn");
+    const dangerCloseBtn   = document.getElementById("dangerClose");
+    const dangerError      = document.getElementById("dangerError");
+    let pendingDeleteId    = "";
+
+    function confirmDeleteProduct(id) {
+      const p = PRODUCTS_BY_ID[id];
+      if (!p) return;
+      pendingDeleteId = id;
+
+      dangerProduct.innerHTML = `
+        ${p.image ? `<img src="${escHtml(p.image)}" alt="" onerror="this.style.opacity=0.2" />` : ""}
+        <div>
+          <div class="danger-product__name">${escHtml(p.name)}</div>
+          <div class="danger-product__id">${escHtml(p.id)}</div>
+        </div>`;
+
+      dangerConfirm.value = "";
+      dangerError.textContent = "";
+      dangerConfirmBtn.disabled = true;
+      dangerConfirmBtn.textContent = "Delete forever";
+      dangerOverlay.classList.add("open");
+      dangerConfirm.focus();
+    }
+
+    function closeDangerModal() {
+      dangerOverlay.classList.remove("open");
+      pendingDeleteId = "";
+    }
+
+    // The button unlocks only once DELETE has been typed in full.
+    dangerConfirm.addEventListener("input", () => {
+      dangerConfirmBtn.disabled = dangerConfirm.value.trim().toUpperCase() !== "DELETE";
+    });
+
+    dangerConfirm.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !dangerConfirmBtn.disabled) deleteProductForever();
+    });
+
+    dangerConfirmBtn.addEventListener("click", deleteProductForever);
+    dangerCancelBtn.addEventListener("click", closeDangerModal);
+    dangerCloseBtn.addEventListener("click", closeDangerModal);
+    dangerOverlay.addEventListener("click", (e) => {
+      if (e.target === dangerOverlay) closeDangerModal();
+    });
+
+    async function deleteProductForever() {
+      const id = pendingDeleteId;
+      if (!id || dangerConfirmBtn.disabled) return;
+
+      dangerConfirmBtn.disabled = true;
+      dangerConfirmBtn.textContent = "DELETING...";
+      dangerError.textContent = "";
+      try {
+        // This header is what turns DELETE from a deactivate into an erase.
+        await apiFetch(`/api/admin/products/${encodeURIComponent(id)}`, {
+          method: "DELETE",
+          headers: { "x-delete-mode": "permanent" },
+        });
+        closeDangerModal();
+        loadAll();
+      } catch(e) {
+        dangerError.textContent = "Delete failed: " + e.message;
+        dangerConfirmBtn.disabled = false;
+        dangerConfirmBtn.textContent = "Delete forever";
       }
     }
 
@@ -1718,7 +1930,9 @@
 
     /* ── Escape to close modal ──────────────────────────────────────────── */
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modalOverlay.classList.contains("open")) closeModal();
+      if (e.key !== "Escape") return;
+      if (dangerOverlay.classList.contains("open")) closeDangerModal();
+      else if (modalOverlay.classList.contains("open")) closeModal();
     });
 
     /* ── Utility ────────────────────────────────────────────────────────── */
