@@ -20,9 +20,37 @@ exports.handler = async (event) => {
     return json(200, data);
   }
 
-  // POST — create product
+  // POST — create product, or delete one outright
   if (event.httpMethod === "POST") {
     const body = JSON.parse(event.body || "{}");
+
+    /* Permanent delete lives on the collection endpoint, not on
+     * /products/:id, because every request to a deeper path 404s in
+     * production before it reaches a function — while this URL is the one the
+     * panel already lists products from, so it is known to arrive. `op` must
+     * say "delete" outright, so a malformed create can never erase a row. */
+    if (body.op === "delete") {
+      const id = String(body.id || "").trim();
+      if (!id) return json(400, { error: "Product id required" });
+      const { error } = await supabase.from("products").delete().eq("id", id);
+      if (error) return json(500, { error: error.message });
+      return json(200, { ok: true, deleted: "permanent", id });
+    }
+
+    /* Deactivate, for the same reason — the panel's Deactivate/Activate
+     * toggle would otherwise depend on PUT /products/:id reaching us. */
+    if (body.op === "set-active") {
+      const id = String(body.id || "").trim();
+      if (!id) return json(400, { error: "Product id required" });
+      const { data, error } = await supabase
+        .from("products")
+        .update({ active: Boolean(body.active) })
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) return json(500, { error: error.message });
+      return json(200, data);
+    }
     const { name, category, price, badge, quantity, sort_order, image, active,
             variant_group, color_label } = body;
 

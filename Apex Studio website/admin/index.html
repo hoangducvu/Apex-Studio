@@ -1106,7 +1106,10 @@
       const res = await fetch(url, { ...options, headers });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `HTTP ${res.status}`);
+        const err = new Error(body.error || `HTTP ${res.status}`);
+        err.status = res.status;
+        err.endpoint = `${options.method || "GET"} ${url}`;
+        throw err;
       }
       return res.json();
     }
@@ -1567,10 +1570,10 @@
      */
     async function setProductActive(id, active) {
       try {
-        await apiFetch(`/api/admin/products/${encodeURIComponent(id)}`, {
-          method: "PUT",
+        await apiFetch(`/api/admin/products`, {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ active }),
+          body: JSON.stringify({ op: "set-active", id, active }),
         });
         loadAll();
       } catch(e) {
@@ -1629,15 +1632,20 @@
       dangerConfirmBtn.textContent = "DELETING...";
       dangerError.textContent = "";
       try {
-        // POST, not DELETE — the DELETE method 404s before reaching the
-        // function in production; this route shape is the one that arrives.
-        await apiFetch(`/api/admin/products/${encodeURIComponent(id)}/delete`, {
+        /* The collection URL, not /products/:id/... — anything below
+           /api/admin/products 404s in production before reaching a function.
+           This is the same URL the list above is loaded from. */
+        await apiFetch(`/api/admin/products`, {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ op: "delete", id }),
         });
         closeDangerModal();
         loadAll();
       } catch(e) {
-        dangerError.textContent = "Delete failed: " + e.message;
+        // Name the endpoint too — a bare "HTTP 404" hides which URL missed.
+        dangerError.textContent = "Delete failed: " + e.message +
+          (e.endpoint ? ` — ${e.endpoint}` : "");
         dangerConfirmBtn.disabled = false;
         dangerConfirmBtn.textContent = "Delete forever";
       }
