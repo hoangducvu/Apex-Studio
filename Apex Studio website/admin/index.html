@@ -185,6 +185,42 @@
     }
 
     /* ── SECTION HEADERS ───────────────────────────────────────────────── */
+    /* ── TABS ───────────────────────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+
+    .tab {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      margin-bottom: -1px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .tab:hover { color: var(--text); }
+
+    .tab.is-on {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab:focus-visible { outline: 1px solid var(--accent); outline-offset: -2px; }
+
+    .tab-panel[hidden] { display: none; }
+
     .section-header {
       display: flex;
       align-items: center;
@@ -193,7 +229,8 @@
       margin-top: 40px;
     }
 
-    .section-header:first-of-type { margin-top: 0; }
+    /* One section per tab, so every header is first inside its own panel. */
+    .tab-panel > .section-header:first-child { margin-top: 0; }
 
     .section-header h2 {
       font-family: 'Space Mono', monospace;
@@ -885,7 +922,18 @@
         </div>
       </div>
 
+      <!-- One section at a time -->
+      <nav class="tabs" role="tablist" aria-label="Admin sections">
+        <button class="tab is-on" role="tab" data-tab="products"
+                aria-selected="true"  aria-controls="tabProducts">Products</button>
+        <button class="tab"       role="tab" data-tab="codes"
+                aria-selected="false" aria-controls="tabCodes">Promo Codes</button>
+        <button class="tab"       role="tab" data-tab="orders"
+                aria-selected="false" aria-controls="tabOrders">Recent Orders</button>
+      </nav>
+
       <!-- Products -->
+      <section class="tab-panel is-on" id="tabProducts" role="tabpanel">
       <div class="section-header">
         <h2>Products</h2>
         <button class="btn-add" id="addProductBtn">+ Add Product</button>
@@ -910,7 +958,10 @@
         </table>
       </div>
 
+      </section>
+
       <!-- Discount codes -->
+      <section class="tab-panel" id="tabCodes" role="tabpanel" hidden>
       <div class="section-header">
         <h2>Discount Codes</h2>
         <div class="codes-bar">
@@ -936,7 +987,10 @@
       </div>
       <p class="codes-note" id="codesNote"></p>
 
+      </section>
+
       <!-- Orders -->
+      <section class="tab-panel" id="tabOrders" role="tabpanel" hidden>
       <div class="section-header">
         <h2>Recent Orders</h2>
       </div>
@@ -958,6 +1012,7 @@
           </tbody>
         </table>
       </div>
+      </section>
 
     </div>
   </div>
@@ -1110,6 +1165,34 @@
       return res.json();
     }
 
+    /* ── Tabs ───────────────────────────────────────────────────────────── */
+    /* Everything still loads together on sign-in; the tabs only decide what is
+       on screen, so switching never waits on a fetch. */
+    function showTab(name) {
+      document.querySelectorAll(".tab").forEach((t) => {
+        const on = t.dataset.tab === name;
+        t.classList.toggle("is-on", on);
+        t.setAttribute("aria-selected", String(on));
+      });
+      document.querySelectorAll(".tab-panel").forEach((panel) => {
+        panel.hidden = panel.id !== "tab" + name[0].toUpperCase() + name.slice(1);
+      });
+      try { sessionStorage.setItem("lumlaAdminTab", name); } catch {}
+    }
+
+    document.querySelectorAll(".tab").forEach((t) =>
+      t.addEventListener("click", () => showTab(t.dataset.tab)));
+
+    // Left/right arrows move between tabs, as a tablist is expected to.
+    document.querySelector(".tabs")?.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      const tabs = [...document.querySelectorAll(".tab")];
+      const at = tabs.findIndex((t) => t.classList.contains("is-on"));
+      const next = tabs[(at + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+      showTab(next.dataset.tab);
+      next.focus();
+    });
+
     /* ── Auth ───────────────────────────────────────────────────────────── */
     async function tryLogin(password) {
       loginError.textContent = "";
@@ -1137,6 +1220,10 @@
     function showPanel() {
       loginScreen.style.display = "none";
       panel.style.display = "block";
+      // Come back to the tab you were last on, not always Products.
+      let last = "products";
+      try { last = sessionStorage.getItem("lumlaAdminTab") || last; } catch {}
+      showTab(document.querySelector(`.tab[data-tab="${last}"]`) ? last : "products");
       loadAll();
     }
 
@@ -1286,25 +1373,12 @@
           <td>${statusHtml}</td>
           <td style="white-space:nowrap">
             <button class="btn-edit" onclick="openEditModalById('${escHtml(p.id)}')">Edit</button>
-            <button class="btn-edit" onclick="copyImageLink(this, '${escHtml(p.image)}')" title="Copy the image URL">Copy link</button>
             <button class="btn-toggle" onclick="setProductActive('${escHtml(p.id)}', ${p.active ? "false" : "true"})"
                     title="${p.active ? "Hide from the storefront — keeps the product" : "Show on the storefront again"}">${p.active ? "Deactivate" : "Activate"}</button>
             <button class="btn-delete" onclick="confirmDeleteProduct('${escHtml(p.id)}')" title="Erase this product forever">Delete</button>
           </td>
         </tr>`;
       }).join("");
-    }
-
-    /* Copy a product's image URL to the clipboard */
-    async function copyImageLink(btn, url) {
-      const label = btn.textContent;
-      try {
-        await navigator.clipboard.writeText(url);
-        btn.textContent = "Copied!";
-      } catch {
-        window.prompt("Image URL:", url);
-      }
-      setTimeout(() => (btn.textContent = label), 1400);
     }
 
     /* ── Orders ─────────────────────────────────────────────────────────── */
