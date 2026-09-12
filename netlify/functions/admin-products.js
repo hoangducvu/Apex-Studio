@@ -37,6 +37,26 @@ exports.handler = async (event) => {
       return json(200, { ok: true, deleted: "permanent", id });
     }
 
+    /* Editing and stock, same reason again: PUT /products/:id and PATCH
+     * /products/:id/stock never arrive either. Rather than restate their
+     * logic, hand the original handlers the event they expect. */
+    if (body.op === "update" || body.op === "stock") {
+      const id = String(body.id || "").trim();
+      if (!id) return json(400, { error: "Product id required" });
+      const { op, id: _id, ...rest } = body;
+
+      const forward = (handler, httpMethod) => handler({
+        ...event,
+        httpMethod,
+        queryStringParameters: { ...(event.queryStringParameters || {}), id },
+        body: JSON.stringify(rest),
+      });
+
+      return body.op === "update"
+        ? forward(require("./admin-product").handler, "PUT")
+        : forward(require("./admin-stock").handler, "PATCH");
+    }
+
     /* Deactivate, for the same reason — the panel's Deactivate/Activate
      * toggle would otherwise depend on PUT /products/:id reaching us. */
     if (body.op === "set-active") {

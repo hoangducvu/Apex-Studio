@@ -1536,10 +1536,10 @@
     /* ── Stock adjustment ───────────────────────────────────────────────── */
     async function adjustStock(id, delta) {
       try {
-        const { quantity } = await apiFetch(`/api/admin/products/${id}/stock`, {
-          method: "PATCH",
+        const { quantity } = await apiFetch(`/api/admin/products`, {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ delta }),
+          body: JSON.stringify({ op: "stock", id, delta }),
         });
         const el = document.getElementById(`stock-${id}`);
         if (el) {
@@ -1855,12 +1855,12 @@
       };
 
       try {
-        const url    = isEdit ? `/api/admin/products/${id}` : "/api/admin/products";
-        const method = isEdit ? "PUT" : "POST";
-        const saved = await apiFetch(url, {
-          method,
+        /* Everything goes to the collection URL: /api/admin/products/:id does
+           not reach a function in production. An edit says so with `op`. */
+        const saved = await apiFetch("/api/admin/products", {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify(payload),
+          body:    JSON.stringify(isEdit ? { op: "update", id, ...payload } : payload),
         });
 
         const savedId = (saved && saved.id) || id;
