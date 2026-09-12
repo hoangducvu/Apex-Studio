@@ -419,13 +419,20 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 }
 .section--dark .card__media img { mix-blend-mode: normal; }
 .card:hover .card__media img { transform: scale(1.05); }
-/* second gallery image — fades in over the main shot on hover */
+/* second gallery image — replaces the main shot on hover.
+   The products are cut-out PNGs blended with multiply, so a plain fade-in
+   left both frames showing through each other. The main shot has to go as
+   the second arrives: it clears first, and the second follows behind it, so
+   the two are never on screen together. */
 .card__media-alt {
   position: absolute; inset: 0; z-index: 1;
-  opacity: 0; transition: opacity 0.35s ease, transform 0.5s cubic-bezier(0.2,0.8,0.2,1);
+  opacity: 0; transition: opacity 0.18s ease 0.12s, transform 0.5s cubic-bezier(0.2,0.8,0.2,1);
 }
 .card__media-alt[hidden] { display: none; }
 .card:hover .card__media-alt { opacity: 1; }
+
+.card__media img[data-card-img] { transition: transform 0.5s cubic-bezier(0.2,0.8,0.2,1), opacity 0.18s ease; }
+.card__media:has(.card__media-alt:not([hidden])):hover img[data-card-img] { opacity: 0; }
 .card__badge {
   position: absolute; top: 0; left: 0; z-index: 2;
   background: var(--c-ink); color: #fff;
@@ -832,12 +839,15 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 .pd__col { display: flex; flex-direction: column; gap: 12px; }
 .pd__media { position: relative; background: var(--c-paper); border: 1px solid var(--c-line); overflow: hidden; }
 .pd__media img { width: 100%; aspect-ratio: 1 / 1; object-fit: contain; padding: 30px; mix-blend-mode: multiply; }
-/* next gallery image — fades in over the main shot on hover */
+/* next gallery image — replaces the main shot on hover, same swap as the
+   cards above: the main one clears before this one arrives. */
 .pd__media-alt {
-  position: absolute; inset: 0; opacity: 0; transition: opacity 0.35s ease;
+  position: absolute; inset: 0; opacity: 0; transition: opacity 0.18s ease 0.12s;
 }
 .pd__media-alt[hidden] { display: none; }
 .pd__media:hover .pd__media-alt { opacity: 1; }
+.pd__media #pdMainImg { transition: opacity 0.18s ease; }
+.pd__media:has(.pd__media-alt:not([hidden])):hover #pdMainImg { opacity: 0; }
 
 /* gallery thumbnails, in the order set in the admin panel */
 .pd__gallery { display: flex; flex-wrap: wrap; gap: 8px; }
