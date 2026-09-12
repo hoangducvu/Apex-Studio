@@ -560,6 +560,43 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 .strip__item span { color: var(--c-text-soft); font-size: 0.82rem; }
 .section--dark .strip__item span { color: var(--c-on-dark-soft); }
 
+/* ---------- Custom lens band ---------- */
+.custom {
+  max-width: var(--w-page); margin: 0 auto; padding: 0 var(--pad-x);
+  display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(24px, 4vw, 64px); align-items: center;
+}
+.custom__media { position: relative; border: 1px solid var(--c-line-dark); }
+.custom__media img {
+  display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: center 38%;
+}
+.custom__badge {
+  position: absolute; left: 0; bottom: 0;
+  background: var(--c-red); color: #fff; padding: 9px 16px;
+  font-family: var(--font-tech); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.24em; text-transform: uppercase;
+}
+.custom__list { list-style: none; margin: 24px 0 30px; display: grid; gap: 10px; }
+.custom__list li {
+  position: relative; padding-left: 24px;
+  font-size: 0.88rem; color: var(--c-on-dark-soft);
+}
+.custom__list li::before {
+  content: ""; position: absolute; left: 0; top: 0.66em;
+  width: 12px; height: 1px; background: var(--c-red);
+}
+.custom__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.custom__note {
+  margin-top: 20px; font-family: var(--font-tech); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--c-on-dark-soft);
+}
+
+@media (max-width: 900px) {
+  .custom { grid-template-columns: 1fr; }
+  .custom__media img { aspect-ratio: 16 / 11; }
+  .custom__actions .btn { flex: 1 1 100%; }
+}
+
 /* ---------- Why / spec rows ---------- */
 .why {
   max-width: var(--w-page); margin: 0 auto; padding: 0 var(--pad-x);
