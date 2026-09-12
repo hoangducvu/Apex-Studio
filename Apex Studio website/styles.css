@@ -438,6 +438,11 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
    over it. The class is set by script.js wherever it sets the second image,
    so a product with one photo keeps showing it instead of going blank. */
 .card--has-alt:hover img[data-card-img] { opacity: 0; }
+/* … except while a swatch is hovered: that is a colour preview, so it shows
+   the chosen colour's own first shot. Must stay after the two rules above —
+   it ties with them on specificity and wins on order. */
+.card--swatch-hover .card__media-alt { opacity: 0; }
+.card--swatch-hover.card--has-alt:hover img[data-card-img] { opacity: 1; }
 .card__badge {
   position: absolute; top: 0; left: 0; z-index: 2;
   background: var(--c-ink); color: #fff;

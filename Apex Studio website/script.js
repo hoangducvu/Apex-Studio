@@ -501,12 +501,25 @@ function renderGrid() {
   grid.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
 }
 
-// Hover (and tap) a swatch → swap the main image
+/* Hover (and tap) a swatch → swap the main image.
+ *
+ * The pointer is still inside the card while a swatch is hovered, so the
+ * card's hover shot would otherwise be what shows — previewing the colour
+ * with the wrong photo. The flag below holds the first shot up for as long as
+ * a swatch is under the pointer. mouseover fires on whatever is entered next,
+ * so moving off the swatches clears it and the hover shot returns.
+ */
 document.addEventListener("mouseover", (e) => {
   const sw = e.target.closest(".swatch[data-variant]");
-  if (!sw) return;
+  if (!sw) {
+    document.querySelectorAll(".card--swatch-hover")
+      .forEach((c) => c.classList.remove("card--swatch-hover"));
+    return;
+  }
   const card = sw.closest("[data-card]");
-  if (card) showVariant(card, sw.dataset.variant);
+  if (!card) return;
+  showVariant(card, sw.dataset.variant);
+  card.classList.add("card--swatch-hover");
 });
 document.addEventListener("click", (e) => {
   const sw = e.target.closest(".swatch[data-variant]");
