@@ -428,10 +428,10 @@ function showVariant(card, id) {
     const alt = hoverUrl(p);
     el.hidden = !alt;
     if (alt) el.src = alt;
-    // Tells the CSS to clear the main shot on hover. A class rather than
-    // :has(), so the swap does not depend on a selector that some browsers
-    // re-evaluate unreliably when the hover state changes.
+    // Whether this colour has a second shot at all; the listener above reads
+    // it to decide if hovering the photo should swap.
     card.classList.toggle("card--has-alt", !!alt);
+    if (!alt) card.classList.remove("card--show-alt");
   });
   set("[data-card-name]", (el) => { el.textContent = styleName(p); });
   set("[data-card-cat]", (el) => { el.textContent = colorOf(p); });
@@ -501,25 +501,32 @@ function renderGrid() {
   grid.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
 }
 
-/* Hover (and tap) a swatch → swap the main image.
+/* Which card, if any, should be showing its second image.
  *
- * The pointer is still inside the card while a swatch is hovered, so the
- * card's hover shot would otherwise be what shows — previewing the colour
- * with the wrong photo. The flag below holds the first shot up for as long as
- * a swatch is under the pointer. mouseover fires on whatever is entered next,
- * so moving off the swatches clears it and the hover shot returns.
+ * CSS cannot express this on its own: :hover covers the whole card, and the
+ * swatches sit inside it, so a swatch preview would inherit the hover shot.
+ * One listener decides it here instead — mouseover fires on whatever the
+ * pointer enters, so this runs on every move between the parts of a card.
+ *
+ * Over the swatches there is no hover effect at all: the card shows that
+ * colour's first shot, which is the photo a colour preview is meant to show.
  */
 document.addEventListener("mouseover", (e) => {
+  const card     = e.target.closest("[data-card]");
+  const onSwatch = !!e.target.closest(".card__swatches");
+  const show     = card && !onSwatch && card.classList.contains("card--has-alt") ? card : null;
+
+  document.querySelectorAll(".card--show-alt")
+    .forEach((c) => { if (c !== show) c.classList.remove("card--show-alt"); });
+  if (show) show.classList.add("card--show-alt");
+});
+
+// Hover (and tap) a swatch → swap the card over to that colour.
+document.addEventListener("mouseover", (e) => {
   const sw = e.target.closest(".swatch[data-variant]");
-  if (!sw) {
-    document.querySelectorAll(".card--swatch-hover")
-      .forEach((c) => c.classList.remove("card--swatch-hover"));
-    return;
-  }
+  if (!sw) return;
   const card = sw.closest("[data-card]");
-  if (!card) return;
-  showVariant(card, sw.dataset.variant);
-  card.classList.add("card--swatch-hover");
+  if (card) showVariant(card, sw.dataset.variant);
 });
 document.addEventListener("click", (e) => {
   const sw = e.target.closest(".swatch[data-variant]");

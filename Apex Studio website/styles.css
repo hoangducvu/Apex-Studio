@@ -429,20 +429,19 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   opacity: 0; transition: opacity 0.18s ease 0.12s, transform 0.5s cubic-bezier(0.2,0.8,0.2,1);
 }
 .card__media-alt[hidden] { display: none; }
-.card:hover .card__media-alt { opacity: 1; }
 
 .card__media img[data-card-img] { transition: transform 0.5s cubic-bezier(0.2,0.8,0.2,1), opacity 0.18s ease; }
-/* Keyed on .card:hover, exactly like the rule above it: hovering the swatches
-   or the name below the photo counts as hovering the card, and keying this on
-   .card__media:hover instead left the main shot up while the second faded in
-   over it. The class is set by script.js wherever it sets the second image,
-   so a product with one photo keeps showing it instead of going blank. */
-.card--has-alt:hover img[data-card-img] { opacity: 0; }
-/* … except while a swatch is hovered: that is a colour preview, so it shows
-   the chosen colour's own first shot. Must stay after the two rules above —
-   it ties with them on specificity and wins on order. */
-.card--swatch-hover .card__media-alt { opacity: 0; }
-.card--swatch-hover.card--has-alt:hover img[data-card-img] { opacity: 1; }
+
+/* The swap runs off a class, not :hover.
+ *
+ * :hover covers the whole card, swatches included, so hovering a swatch
+ * previewed the colour with the wrong photo — and every attempt to carve the
+ * swatches back out was a specificity argument between rules that all had a
+ * claim. script.js decides instead: it adds the class when the pointer is
+ * over a card that has a second image, and not when the pointer is on the
+ * swatches, where the first shot is what a colour preview should show. */
+.card--show-alt .card__media-alt   { opacity: 1; }
+.card--show-alt img[data-card-img] { opacity: 0; }
 .card__badge {
   position: absolute; top: 0; left: 0; z-index: 2;
   background: var(--c-ink); color: #fff;
