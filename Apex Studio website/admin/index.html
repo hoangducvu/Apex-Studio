@@ -984,8 +984,14 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="fName">Name *</label>
-            <input type="text" id="fName" placeholder="GOLD LIGHT METALLIC 20" required />
+            <label for="fVariantGroup">Name *</label>
+            <input type="text" id="fVariantGroup" list="variantGroups" placeholder="e.g. SLIPSTREAM"
+                   autocomplete="off" required />
+            <datalist id="variantGroups"></datalist>
+            <small style="display:block;margin-top:6px;color:var(--muted);font-size:0.72rem;line-height:1.5">
+              Frames with the <b>same name</b> are one style in different colours —
+              they share a single card on the shop, with a thumbnail per colour.
+            </small>
           </div>
           <div class="form-group">
             <label for="fCategory">Category</label>
@@ -1004,24 +1010,14 @@
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="fVariantGroup">Colour group</label>
-            <input type="text" id="fVariantGroup" list="variantGroups" placeholder="e.g. SLIM PLASTIC" autocomplete="off" />
-            <datalist id="variantGroups"></datalist>
-            <small style="display:block;margin-top:6px;color:var(--muted);font-size:0.72rem;line-height:1.5">
-              Frames with the <b>same</b> group label are the same pair in different
-              colours — they share one card on the shop, with a thumbnail per colour.
-              Leave blank to keep this frame on its own.
-            </small>
-          </div>
-          <div class="form-group">
-            <label for="fColorLabel">Colour name</label>
-            <input type="text" id="fColorLabel" placeholder="e.g. Matte Black" autocomplete="off" />
-            <small style="display:block;margin-top:6px;color:var(--muted);font-size:0.72rem;line-height:1.5">
-              Shown under the swatch. Leave blank to use the product name.
-            </small>
-          </div>
+        <div class="form-group">
+          <label for="fColorLabel">Colour</label>
+          <input type="text" id="fColorLabel" placeholder="e.g. Matte Black" autocomplete="off" />
+          <small style="display:block;margin-top:6px;color:var(--muted);font-size:0.72rem;line-height:1.5">
+            Labels this frame's swatch on the shared card. The full product name —
+            the one on the cart and the order email — is
+            <b><span id="fNamePreview">Name + Colour</span></b>.
+          </small>
         </div>
 
         <div class="form-row">
@@ -1243,7 +1239,9 @@
         return;
       }
 
-      // Feed the "Colour group" autocomplete with the groups already in use
+      // Feed the Name autocomplete with the style names already in use, so a
+      // second colour of an existing frame joins its card instead of typo-ing
+      // into a card of its own.
       const groups = [...new Set(data.map(p => (p.variant_group || "").trim()).filter(Boolean))].sort();
       const dl = document.getElementById("variantGroups");
       if (dl) dl.innerHTML = groups.map(g => `<option value="${escHtml(g)}"></option>`).join("");
@@ -1271,8 +1269,8 @@
             ${p.images.length > 1 ? `<span style="display:block;text-align:center;margin-top:4px;font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted)">${p.images.length} imgs</span>` : ""}
           </td>
           <td class="td-name">
-            ${escHtml(p.name)}
-            ${p.variant_group ? `<span style="display:block;color:var(--muted);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">◈ ${escHtml(p.variant_group)}${p.color_label ? " · " + escHtml(p.color_label) : ""}</span>` : ""}
+            ${escHtml(p.variant_group || p.name)}
+            ${p.color_label ? `<span style="display:block;color:var(--accent);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">◈ ${escHtml(p.color_label)}</span>` : ""}
           </td>
           <td style="color:var(--muted)">${escHtml(p.category || "—")}</td>
           <td class="td-price">€${Number(p.price).toFixed(2)}</td>
@@ -1784,6 +1782,7 @@
       gallery = [];
       renderGallery();
       uploadProgress.style.display = "none";
+      updateNamePreview();
       modalOverlay.classList.add("open");
     }
 
@@ -1795,7 +1794,6 @@
     function openEditModal(p) {
       editId.value = p.id;
       modalTitle.textContent = "Edit Product";
-      document.getElementById("fName").value      = p.name || "";
       document.getElementById("fCategory").value  = p.category || "";
       document.getElementById("fPrice").value     = p.price || "";
       document.getElementById("fBadge").value     = p.badge || "";
@@ -1803,6 +1801,7 @@
       document.getElementById("fSortOrder").value = p.sort_order ?? 0;
       document.getElementById("fVariantGroup").value = p.variant_group || "";
       document.getElementById("fColorLabel").value   = p.color_label || "";
+      updateNamePreview();
       document.getElementById("fActive").checked  = !!p.active;
       gallery = galleryOf(p);
       renderGallery();
@@ -1810,6 +1809,20 @@
       uploadProgress.style.display = "none";
       modalOverlay.classList.add("open");
     }
+
+    /* The stored name is Name + Colour; show it as it is typed so the label
+       on the cart and the order email is never a surprise. */
+    function updateNamePreview() {
+      const el = document.getElementById("fNamePreview");
+      if (!el) return;
+      const style  = document.getElementById("fVariantGroup").value.trim();
+      const colour = document.getElementById("fColorLabel").value.trim();
+      const full   = `${style} ${colour}`.trim().toUpperCase();
+      el.textContent = full || "Name + Colour";
+    }
+
+    document.getElementById("fVariantGroup").addEventListener("input", updateNamePreview);
+    document.getElementById("fColorLabel").addEventListener("input", updateNamePreview);
 
     function closeModal() {
       modalOverlay.classList.remove("open");
@@ -1841,7 +1854,6 @@
       // Build product payload — gallery order is the storefront order, and
       // `image` mirrors the first entry for everything still reading it.
       const payload = {
-        name:       document.getElementById("fName").value,
         category:   document.getElementById("fCategory").value,
         price:      document.getElementById("fPrice").value,
         badge:      document.getElementById("fBadge").value,

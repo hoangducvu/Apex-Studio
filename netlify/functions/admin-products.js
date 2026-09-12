@@ -1,4 +1,5 @@
-const { supabase, json, options, requireAdmin, saveTolerant, normalizeImages } = require("./_helpers");
+const { supabase, json, options, requireAdmin, saveTolerant, normalizeImages,
+        productName } = require("./_helpers");
 
 // Columns that only exist once their SQL migration has been run. saveTolerant
 // drops whichever ones the database rejects rather than failing the save.
@@ -80,13 +81,23 @@ exports.handler = async (event) => {
     const mainImage = images[0] || image || "";
     if (mainImage && !images.length) images.push(mainImage);
 
-    if (!name || !price) return json(400, { error: "name and price required" });
-    if (!mainImage)      return json(400, { error: "image required" });
+    // The panel edits a style name and a colour; the stored `name` is built
+    // from the pair. An explicit name still works for anything calling the
+    // API directly.
+    const style    = (variant_group || "").trim();
+    const colour   = (color_label   || "").trim();
+    const fullName = productName(style, colour) || (name || "").trim();
+
+    // A colour on its own is not a product: without a style name it would
+    // render as a card called "BLUE" that nothing can ever group with.
+    if (!style && !(name || "").trim()) return json(400, { error: "name required" });
+    if (!fullName || !price) return json(400, { error: "name and price required" });
+    if (!mainImage)          return json(400, { error: "image required" });
 
     const id = `prod_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const row = {
       id,
-      name,
+      name: fullName,
       category:   category   || "",
       price:      parseFloat(price),
       image:      mainImage,
@@ -95,8 +106,8 @@ exports.handler = async (event) => {
       quantity:   parseInt(quantity)   || 0,
       sort_order: parseInt(sort_order) || 0,
       active:     active !== false,
-      variant_group: (variant_group || "").trim(),
-      color_label:   (color_label   || "").trim(),
+      variant_group: style,
+      color_label:   colour,
     };
 
     const { data, error } = await saveTolerant(

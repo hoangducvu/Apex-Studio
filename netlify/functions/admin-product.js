@@ -1,4 +1,5 @@
-const { supabase, json, options, requireAdmin, saveTolerant, normalizeImages } = require("./_helpers");
+const { supabase, json, options, requireAdmin, saveTolerant, normalizeImages,
+        productName } = require("./_helpers");
 
 // Columns that only exist once their SQL migration has been run. saveTolerant
 // drops whichever ones the database rejects rather than failing the save.
@@ -36,8 +37,13 @@ exports.handler = async (event) => {
     const mainImage = images[0] || body.image || existing.image || "";
     if (mainImage && !images.length) images.push(mainImage);
 
+    // Rebuild the stored name from whichever of the two fields changed, and
+    // fall back to what is already there if neither yields anything.
+    const style  = body.variant_group != null ? String(body.variant_group).trim() : existing.variant_group;
+    const colour = body.color_label   != null ? String(body.color_label).trim()   : existing.color_label;
+
     const update = {
-      name:       body.name       ?? existing.name,
+      name:       productName(style, colour) || body.name || existing.name,
       category:   body.category   ?? existing.category,
       price:      body.price   != null ? parseFloat(body.price)    : existing.price,
       image:      mainImage,
@@ -46,8 +52,8 @@ exports.handler = async (event) => {
       quantity:   body.quantity   != null ? parseInt(body.quantity)    : existing.quantity,
       sort_order: body.sort_order != null ? parseInt(body.sort_order)  : existing.sort_order,
       active:     body.active     != null ? Boolean(body.active)       : existing.active,
-      variant_group: body.variant_group != null ? String(body.variant_group).trim() : existing.variant_group,
-      color_label:   body.color_label   != null ? String(body.color_label).trim()   : existing.color_label,
+      variant_group: style,
+      color_label:   colour,
     };
 
     const { data, error } = await saveTolerant(

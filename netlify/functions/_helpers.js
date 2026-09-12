@@ -101,7 +101,27 @@ function safeParseArray(str) {
   }
 }
 
+/**
+ * A product's full name, built from the two fields the admin panel edits:
+ * the style name it is grouped by, and its colour. "VECTOR" + "Black" reads
+ * as "VECTOR BLACK" — which is what every existing product is already called,
+ * so nothing a customer sees changes.
+ *
+ * The column stays because the cart, checkout, order emails and past orders
+ * all need one label for the exact frame; "Black" on its own would be
+ * useless on a receipt.
+ *
+ * @param {string} styleName grouping name (products.variant_group)
+ * @param {string} colour    colour label (products.color_label)
+ * @returns {string} "" when there is nothing to build from
+ */
+function productName(styleName, colour) {
+  return `${String(styleName || "").trim()} ${String(colour || "").trim()}`
+    .trim()
+    .toUpperCase();
+}
+
 module.exports = {
   supabase, CORS, requireAdmin, json, options,
-  missingColumn, saveTolerant, normalizeImages, MAX_IMAGES,
+  missingColumn, saveTolerant, normalizeImages, MAX_IMAGES, productName,
 };

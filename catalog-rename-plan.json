@@ -22,7 +22,7 @@
     { "id": "prod_1783636788385_uuow8", "was": "BLACK LIGHT METALLIC 2",          "name": "GLIDE BLACK SMOKE",        "category": "Metallic", "variant_group": "Glide",      "color_label": "Black Smoke" },
     { "id": "prod_1783636762421_4dbqa", "was": "BLUE LIGHT METALLIC 1",           "name": "GLIDE ICE BLUE",           "category": "Metallic", "variant_group": "Glide",      "color_label": "Ice Blue" },
 
-    { "id": "prod_1783636829996_nhkxh", "was": "SILVER LIGHT METALLIC 3",         "name": "RELIC SILVER",             "category": "Metallic", "variant_group": "",           "color_label": "" },
+    { "id": "prod_1783636829996_nhkxh", "was": "SILVER LIGHT METALLIC 3",         "name": "RELIC SILVER",             "category": "Metallic", "variant_group": "Relic",      "color_label": "Silver" },
 
     { "id": "prod_1785680947793_z8yzs", "was": "BLACK SLIM METALLIC",             "name": "SABLE SILVER NOIR",        "category": "Metallic", "variant_group": "Sable",      "color_label": "Silver Noir" },
     { "id": "prod_1785680845700_ufp6l", "was": "SLIM GOLD METALLIC",              "name": "SABLE GOLD AMBER",         "category": "Metallic", "variant_group": "Sable",      "color_label": "Gold Amber" },
@@ -52,7 +52,7 @@
     { "id": "blue-light-20",            "was": "BLUE PLASTIC 1",                  "name": "DRIFT ICE BLUE",           "category": "Plastic",  "variant_group": "Drift",      "color_label": "Ice Blue" },
     { "id": "heavy-chrome-01",          "was": "CHROME PLASTIC 1",                "name": "DRIFT PRISM",              "category": "Plastic",  "variant_group": "Drift",      "color_label": "Prism" },
 
-    { "id": "prod_1783465791728_osjad", "was": "BLACK PLASTIC SLIM 1",            "name": "BOLT BLACK",               "category": "Plastic",  "variant_group": "",           "color_label": "" }
+    { "id": "prod_1783465791728_osjad", "was": "BLACK PLASTIC SLIM 1",            "name": "BOLT BLACK",               "category": "Plastic",  "variant_group": "Bolt",       "color_label": "Black" }
   ],
   "_untouched": [
     "prod_1783260776409_s0ol5 — 'DELETE TEST', no category, €1. Left alone; delete it in the admin panel if it is junk.",
