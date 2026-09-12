@@ -432,7 +432,12 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 .card:hover .card__media-alt { opacity: 1; }
 
 .card__media img[data-card-img] { transition: transform 0.5s cubic-bezier(0.2,0.8,0.2,1), opacity 0.18s ease; }
-.card__media:has(.card__media-alt:not([hidden])):hover img[data-card-img] { opacity: 0; }
+/* Keyed on .card:hover, exactly like the rule above it: hovering the swatches
+   or the name below the photo counts as hovering the card, and keying this on
+   .card__media:hover instead left the main shot up while the second faded in
+   over it. The class is set by script.js wherever it sets the second image,
+   so a product with one photo keeps showing it instead of going blank. */
+.card--has-alt:hover img[data-card-img] { opacity: 0; }
 .card__badge {
   position: absolute; top: 0; left: 0; z-index: 2;
   background: var(--c-ink); color: #fff;
@@ -847,7 +852,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 .pd__media-alt[hidden] { display: none; }
 .pd__media:hover .pd__media-alt { opacity: 1; }
 .pd__media #pdMainImg { transition: opacity 0.18s ease; }
-.pd__media:has(.pd__media-alt:not([hidden])):hover #pdMainImg { opacity: 0; }
+.pd__media--has-alt:hover #pdMainImg { opacity: 0; }
 
 /* gallery thumbnails, in the order set in the admin panel */
 .pd__gallery { display: flex; flex-wrap: wrap; gap: 8px; }

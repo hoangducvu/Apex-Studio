@@ -304,7 +304,7 @@ function renderProductDetail() {
 
   pdContent.innerHTML = `
     <div class="pd__col">
-      <div class="pd__media">
+      <div class="pd__media${shots[1] ? " pd__media--has-alt" : ""}">
         ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}">${esc(p.badge)}</span>` : ""}
         <img src="${esc(shots[0])}" alt="${esc(p.name)} glasses" id="pdMainImg" data-default="${esc(shots[0])}" />
         ${shots[1] ? `<img class="pd__media-alt" src="${esc(shots[1])}" alt="" aria-hidden="true" id="pdAltImg" />` : ""}
@@ -395,7 +395,7 @@ function cardHtml(group) {
     </div>` : "";
 
   return `
-    <article class="card" data-reveal data-card>
+    <article class="card${hoverUrl(p) ? " card--has-alt" : ""}" data-reveal data-card>
       <div class="card__media">
         ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}" data-card-badge>${esc(p.badge)}</span>` : `<span class="card__badge" data-card-badge hidden></span>`}
         ${p.quantity === 0 ? `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock>SOLD OUT</span>` : p.quantity <= 5 ? `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock>LOW STOCK</span>` : `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock hidden></span>`}
@@ -428,6 +428,10 @@ function showVariant(card, id) {
     const alt = hoverUrl(p);
     el.hidden = !alt;
     if (alt) el.src = alt;
+    // Tells the CSS to clear the main shot on hover. A class rather than
+    // :has(), so the swap does not depend on a selector that some browsers
+    // re-evaluate unreliably when the hover state changes.
+    card.classList.toggle("card--has-alt", !!alt);
   });
   set("[data-card-name]", (el) => { el.textContent = styleName(p); });
   set("[data-card-cat]", (el) => { el.textContent = colorOf(p); });
