@@ -17,9 +17,10 @@ const COUNTRY_CODES = {
    sits in the 101–300 g band: €5.81 untracked, €13.29 tracked. These rates
    round that up a little to absorb two-pair orders (301–500 g).
 
-   Two things waive the standard rate: a Malta address, a local hop the shop
-   absorbs, and an order over FREE_SHIPPING_OVER. Tracked costs the difference
-   either way — so the shop spends the same. */
+   A Malta address ships free, untracked, and has no tracked option to pick.
+   International keeps both services, with orders over FREE_SHIPPING_OVER
+   waiving the standard rate and tracked costing the difference — so the shop
+   spends the same either way. */
 const SHIPPING_OPTIONS = {
   standard: { price: 5.95,  label: "Standard (untracked)" },
   tracked:  { price: 13.95, label: "Tracked & signed" },
@@ -86,7 +87,10 @@ exports.handler = async (event) => {
     const discount = deal ? round2((subtotal * deal.percent) / 100) : 0;
     const goods = round2(subtotal - discount);
 
-    const method = SHIPPING_OPTIONS[shippingMethod] ? shippingMethod : "standard";
+    /* Malta ships one way — free and untracked — so the destination decides
+       the service there, whatever the browser asked for. */
+    const asked  = SHIPPING_OPTIONS[shippingMethod] ? shippingMethod : "standard";
+    const method = shipsFree(shipping?.country) ? "standard" : asked;
     const postage = shippingCost(method, goods, shipping?.country);
     const total = round2(goods + postage);
 

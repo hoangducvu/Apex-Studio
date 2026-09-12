@@ -64,6 +64,13 @@ const DELIVERY = {
 function destKey(country) {
   return String(country || "").trim().toLowerCase() === "malta" ? "malta" : "intl";
 }
+
+/* Malta gets one service: free, untracked. There is no tracked option to
+   choose, so the method is decided by the destination, not the customer.
+   Mirrored in create-payment-intent.js, which forces the same thing. */
+function methodsFor(country) {
+  return destKey(country) === "malta" ? ["standard"] : Object.keys(SHIPPING);
+}
 function chosenCountry() {
   return document.getElementById("coCountry")?.value || "";
 }
@@ -1037,7 +1044,13 @@ function renderCheckoutSummary() {
 function renderShipOptions() {
   const wrap = document.getElementById("coShipOpts");
   if (!wrap) return;
-  wrap.innerHTML = Object.entries(SHIPPING).map(([key, o]) => {
+  const allowed = methodsFor(chosenCountry());
+  // Switching to Malta while "tracked" is selected would otherwise leave a
+  // choice ticked that is no longer on offer.
+  if (!allowed.includes(shipMethod)) shipMethod = allowed[0];
+
+  wrap.innerHTML = allowed.map((key) => {
+    const o = SHIPPING[key];
     const cost = shippingCost(key);
     return `
       <label class="co__ship-opt${key === shipMethod ? " is-on" : ""}" data-ship="${key}">
