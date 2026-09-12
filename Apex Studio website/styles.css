@@ -585,6 +585,8 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   content: ""; position: absolute; left: 0; top: 0.66em;
   width: 12px; height: 1px; background: var(--c-red);
 }
+.custom__list-soon { opacity: 0.62; }
+.custom__list li.custom__list-soon::before { background: var(--c-on-dark-soft); }
 .custom__actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .custom__note {
   margin-top: 20px; font-family: var(--font-tech); font-size: 0.62rem; font-weight: 700;
