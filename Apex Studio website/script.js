@@ -273,7 +273,6 @@ function renderProductDetail() {
 
   document.title = `${p.name} — LUMLA GLASSES`;
   const soldOut  = p.quantity === 0;
-  const lowStock = !soldOut && p.quantity <= 5;
   const prevQty  = parseInt(document.getElementById("pdQtyVal")?.textContent, 10) || 1;
   const qty      = soldOut ? 1 : Math.min(prevQty, p.quantity);
 
@@ -317,7 +316,7 @@ function renderProductDetail() {
       <div class="pd__stars" aria-hidden="true">★★★★★ <span>Loved by our customers</span></div>
       <div class="pd__price">${fmt(p.price)}</div>
       <p class="pd__stock ${soldOut ? "pd__stock--out" : ""}">
-        ${soldOut ? "Sold out" : lowStock ? `Low stock — only ${p.quantity} left` : `In stock — ${deliveryLine()}`}
+        ${soldOut ? "Sold out" : `In stock — ${deliveryLine()}`}
       </p>
 
       ${variantsHtml}
@@ -398,7 +397,7 @@ function cardHtml(group) {
     <article class="card${hoverUrl(p) ? " card--has-alt" : ""}" data-reveal data-card>
       <div class="card__media">
         ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}" data-card-badge>${esc(p.badge)}</span>` : `<span class="card__badge" data-card-badge hidden></span>`}
-        ${p.quantity === 0 ? `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock>SOLD OUT</span>` : p.quantity <= 5 ? `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock>LOW STOCK</span>` : `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock hidden></span>`}
+        ${p.quantity === 0 ? `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock>SOLD OUT</span>` : `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock hidden></span>`}
         <a class="card__media-link" href="/products/${encodeURIComponent(p.id)}" data-card-link aria-label="View ${esc(p.name)}">
           <img src="${imgUrl(p)}" alt="${esc(p.name)} glasses" data-card-img loading="lazy" />
           <img class="card__media-alt" src="${esc(hoverUrl(p) || "")}" alt="" aria-hidden="true"
@@ -438,7 +437,7 @@ function showVariant(card, id) {
   set("[data-card-price]", (el) => { el.textContent = fmt(p.price); });
   set("[data-card-badge]", (el) => { el.textContent = p.badge || ""; el.hidden = !p.badge; });
   set("[data-card-stock]", (el) => {
-    const txt = p.quantity === 0 ? "SOLD OUT" : p.quantity <= 5 ? "LOW STOCK" : "";
+    const txt = p.quantity === 0 ? "SOLD OUT" : "";
     el.textContent = txt; el.hidden = !txt;
   });
   set("[data-card-add]", (el) => {
