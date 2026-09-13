@@ -217,34 +217,62 @@ function resolveUrl(src) {
   return /^(https?:)?\/\//.test(s) || s.startsWith("/") ? s : "/" + s;
 }
 
-/* ── Image delivery ────────────────────────────
- * Shots are served exactly as they were uploaded. Asking Supabase to resize
- * and re-encode them on the way out made the catalog dramatically lighter,
- * but it was a visible step down in quality on the frames themselves, so the
- * stored file is what ships.
+/* ── Image delivery ───────────────────────────
+ * A frame is served as it is stored, pixel for pixel. Asking Supabase to
+ * resize the shots on the way out was a visible step down on the frames
+ * themselves, so anything painted large enough for that to matter is left
+ * exactly alone.
  *
- * The widths below no longer change the request. They are kept because the
- * callers read them, and because they record how large each slot actually
- * paints, if a resize is ever reconsidered at a higher quality.
+ * Thumbnails are the exception. A colour swatch paints into a 58 px box and
+ * a gallery thumb barely more, so sending the full frame there spends about
+ * a megabyte filling a square the size of a fingernail. A resize is asked
+ * for only below THUMB_MAX, where the result is smaller than anything an
+ * eye can resolve — the card, the hover shot and the product page are all
+ * above it and untouched.
  */
-const IMG_W = { card: 700, swatch: 140, main: 1200, thumb: 220 };
+const IMG_W = { card: 700, swatch: 200, main: 1200, thumb: 300 };
+const THUMB_MAX = 400;
+const OBJECT_PATH = "/storage/v1/object/public/";
 
-function sized(src) {
-  return String(src || "");
+function sized(src, width) {
+  const u = String(src || "");
+  if (!width || width > THUMB_MAX) return u;
+  if (u.includes("?") || !u.includes("supabase.co") || !u.includes(OBJECT_PATH)) return u;
+  // resize=contain is not optional: given a width alone Supabase keeps the
+  // original height and squashes the frame sideways.
+  return u.replace(OBJECT_PATH, "/storage/v1/render/image/public/") +
+    "?width=" + width + "&resize=contain&quality=90";
 }
 
 /* Attributes for an <img> that should arrive at `width` pixels. The cards in
  * the first rows pass eager = true so the browser fetches them straight away
  * instead of holding them for the lazy-load pass. */
 function imgAttrs(src, width, eager) {
-  return `src="${esc(sized(src))}" decoding="async" ` +
-    (eager ? `fetchpriority="high"` : `loading="lazy"`);
+  const use = sized(src, width);
+  return `src="${esc(use)}"` +
+    (use !== src ? ` data-full="${esc(src)}"` : "") +
+    ` decoding="async" ` + (eager ? `fetchpriority="high"` : `loading="lazy"`);
 }
 
 // Repoint an <img> already on the page — a card swapping to another colour.
-function setImg(el, src) {
-  el.src = sized(src);
+function setImg(el, src, width) {
+  const use = sized(src, width);
+  el.src = use;
+  if (use !== src) el.dataset.full = src;
+  else delete el.dataset.full;
+  delete el.dataset.fellBack;
 }
+
+/* A resized thumbnail that fails falls back to the stored file, once.
+ * Transformations are a Supabase add-on; if one is ever switched off the
+ * swatches keep their pictures instead of going blank. `error` does not
+ * bubble, so this listens in the capture phase. */
+document.addEventListener("error", (e) => {
+  const img = e.target;
+  if (!img || img.tagName !== "IMG" || !img.dataset.full || img.dataset.fellBack) return;
+  img.dataset.fellBack = "1";
+  img.src = img.dataset.full;
+}, true);
 
 // The full gallery, main shot first, always at least one entry.
 function imagesOf(p) {
@@ -437,13 +465,13 @@ function cardHtml(group, index) {
   const swatches = many ? `
     <div class="card__swatches">
       ${group.items.map((v, i) => `
-        <button type="button" class="swatch${i === 0 ? " is-active" : ""}"
-                data-variant="${esc(v.id)}" title="${esc(colorOf(v))}" aria-label="${esc(colorOf(v))}">
+        <a class="swatch${i === 0 ? " is-active" : ""}" href="/products/${encodeURIComponent(v.id)}"
+           data-variant="${esc(v.id)}" title="${esc(colorOf(v))}" aria-label="View ${esc(colorOf(v))}">
           <span class="swatch__thumb">
             <img ${imgAttrs(imgUrl(v), IMG_W.swatch)} alt="${esc(colorOf(v))}" />
             ${v.badge ? `<span class="swatch__badge ${/sale/i.test(v.badge) ? "swatch__badge--sale" : ""}">${esc(v.badge)}</span>` : ""}
           </span>
-        </button>`).join("")}
+        </a>`).join("")}
     </div>` : "";
 
   return `
@@ -573,17 +601,15 @@ document.addEventListener("mouseover", (e) => {
   if (show) show.classList.add("card--show-alt");
 });
 
-// Hover (and tap) a swatch → swap the card over to that colour.
+/* Hovering a swatch previews that colour on the card it belongs to. The
+ * swatch is a link to that colour's own page, so a click leaves rather than
+ * previewing: a grouped card used to show one product no matter which swatch
+ * was clicked, which left every colour but the first unreachable without
+ * hovering first and then clicking the photo. A tap does the same thing,
+ * which is the only way to reach them at all on a touch screen. */
 document.addEventListener("mouseover", (e) => {
   const sw = e.target.closest(".swatch[data-variant]");
   if (!sw) return;
-  const card = sw.closest("[data-card]");
-  if (card) showVariant(card, sw.dataset.variant);
-});
-document.addEventListener("click", (e) => {
-  const sw = e.target.closest(".swatch[data-variant]");
-  if (!sw) return;
-  e.preventDefault();
   const card = sw.closest("[data-card]");
   if (card) showVariant(card, sw.dataset.variant);
 });
