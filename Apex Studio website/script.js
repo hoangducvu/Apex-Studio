@@ -217,71 +217,33 @@ function resolveUrl(src) {
   return /^(https?:)?\/\//.test(s) || s.startsWith("/") ? s : "/" + s;
 }
 
-/* ── Sized delivery ───────────────────────────────────────────────
- * Shots are uploaded at full resolution — around 700 KB of PNG each, and the
- * catalog paints dozens of them at once. Supabase resizes and re-encodes on
- * request, so ask it for the size the slot actually paints: a card image comes
- * back as ~50 KB of WebP instead of 1.2 MB of PNG. Alpha survives the
- * re-encode, which matters here — the cut-outs are blended with multiply, and
- * a flattened background would box every frame in white.
+/* ── Image delivery ────────────────────────────
+ * Shots are served exactly as they were uploaded. Asking Supabase to resize
+ * and re-encode them on the way out made the catalog dramatically lighter,
+ * but it was a visible step down in quality on the frames themselves, so the
+ * stored file is what ships.
  *
- * Only Storage URLs can be transformed. The bundled assets/ fallbacks and any
- * hand-entered URL are handed back untouched, and a transform that fails drops
- * the <img> back to the original (see the listener below).
- *
- * Widths are roughly twice the CSS box, so shots stay sharp on the retina
- * screens most of the traffic arrives on. resize=contain is not optional:
- * given a width alone Supabase keeps the original height and squashes the
- * frame sideways.
+ * The widths below no longer change the request. They are kept because the
+ * callers read them, and because they record how large each slot actually
+ * paints, if a resize is ever reconsidered at a higher quality.
  */
 const IMG_W = { card: 700, swatch: 140, main: 1200, thumb: 220 };
-const OBJECT_PATH = "/storage/v1/object/public/";
 
-function sized(src, width) {
-  const u = String(src || "");
-  if (!width || u.includes("?") || !u.includes("supabase.co") || !u.includes(OBJECT_PATH)) return u;
-  return u.replace(OBJECT_PATH, "/storage/v1/render/image/public/") +
-    "?width=" + width + "&resize=contain&quality=75";
+function sized(src) {
+  return String(src || "");
 }
 
 /* Attributes for an <img> that should arrive at `width` pixels. The cards in
  * the first rows pass eager = true so the browser fetches them straight away
  * instead of holding them for the lazy-load pass. */
 function imgAttrs(src, width, eager) {
-  const small = sized(src, width);
-  return `src="${esc(small)}"` +
-    (small !== src ? ` data-full="${esc(src)}"` : "") +
-    ` decoding="async" ` + (eager ? `fetchpriority="high"` : `loading="lazy"`);
+  return `src="${esc(sized(src))}" decoding="async" ` +
+    (eager ? `fetchpriority="high"` : `loading="lazy"`);
 }
 
 // Repoint an <img> already on the page — a card swapping to another colour.
-function setImg(el, src, width) {
-  const small = sized(src, width);
-  el.src = small;
-  if (small !== src) el.dataset.full = src;
-  else delete el.dataset.full;
-  delete el.dataset.fellBack;
-}
-
-/* A sized URL that fails falls back to the original, once. Transformations are
- * a Supabase add-on; if one is ever switched off the catalog keeps its
- * pictures instead of showing a page of broken frames. `error` does not
- * bubble, so this listens in the capture phase. */
-document.addEventListener("error", (e) => {
-  const img = e.target;
-  if (!img || img.tagName !== "IMG" || !img.dataset.full || img.dataset.fellBack) return;
-  img.dataset.fellBack = "1";
-  img.src = img.dataset.full;
-}, true);
-
-/* The hover shot is fetched only once a pointer actually reaches the card.
- * Most visitors never see it, and loading it up front doubles the weight of
- * the catalog for nothing. */
-function hydrateAlt(card) {
-  const el = card.querySelector("[data-card-img-alt][data-src]");
-  if (!el) return;
-  setImg(el, el.dataset.src, IMG_W.card);
-  el.removeAttribute("data-src");
+function setImg(el, src) {
+  el.src = sized(src);
 }
 
 // The full gallery, main shot first, always at least one entry.
@@ -362,7 +324,7 @@ function renderProductDetail() {
       <div class="card__swatches">
         ${siblings.map((v) => `
           <a class="swatch${v.id === p.id ? " is-active" : ""}" href="/products/${encodeURIComponent(v.id)}"
-             data-preview="${esc(sized(imgUrl(v), IMG_W.main))}" title="${esc(colorOf(v))} — ${esc(fmt(v.price))}">
+             data-preview="${esc(imgUrl(v))}" title="${esc(colorOf(v))} — ${esc(fmt(v.price))}">
             <span class="swatch__thumb">
               <img ${imgAttrs(imgUrl(v), IMG_W.swatch)} alt="${esc(colorOf(v))}" />
               ${v.badge ? `<span class="swatch__badge ${/sale/i.test(v.badge) ? "swatch__badge--sale" : ""}">${esc(v.badge)}</span>` : ""}
@@ -387,7 +349,7 @@ function renderProductDetail() {
       <div class="pd__media${shots[1] ? " pd__media--has-alt" : ""}">
         ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}">${esc(p.badge)}</span>` : ""}
         <img ${imgAttrs(shots[0], IMG_W.main, true)} alt="${esc(p.name)} glasses" id="pdMainImg"
-             data-default="${esc(sized(shots[0], IMG_W.main))}" />
+             data-default="${esc(shots[0])}" />
         ${shots[1] ? `<img class="pd__media-alt" ${imgAttrs(shots[1], IMG_W.main)} alt="" aria-hidden="true" id="pdAltImg" />` : ""}
       </div>
       ${galleryHtml}
@@ -467,6 +429,10 @@ function cardHtml(group, index) {
   // The first rows are on screen before anything scrolls — fetch them now.
   const eager = index < 4;
   const many = group.items.length > 1;
+  /* The second shot loads with the card rather than on hover: waiting for the
+   * pointer meant starting the request at the worst possible moment, and the
+   * swap visibly lagged the cursor. */
+  const alt = hoverUrl(p);
 
   const swatches = many ? `
     <div class="card__swatches">
@@ -481,14 +447,14 @@ function cardHtml(group, index) {
     </div>` : "";
 
   return `
-    <article class="card${hoverUrl(p) ? " card--has-alt" : ""}" data-reveal data-card>
+    <article class="card${alt ? " card--has-alt" : ""}" data-reveal data-card>
       <div class="card__media">
         ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}" data-card-badge>${esc(p.badge)}</span>` : `<span class="card__badge" data-card-badge hidden></span>`}
         ${p.quantity === 0 ? `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock>SOLD OUT</span>` : `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock hidden></span>`}
         <a class="card__media-link" href="/products/${encodeURIComponent(p.id)}" data-card-link aria-label="View ${esc(p.name)}">
           <img ${imgAttrs(imgUrl(p), IMG_W.card, eager)} alt="${esc(p.name)} glasses" data-card-img />
-          <img class="card__media-alt" alt="" aria-hidden="true" decoding="async"
-               data-card-img-alt data-src="${esc(hoverUrl(p) || "")}" ${hoverUrl(p) ? "" : "hidden"} />
+          <img class="card__media-alt" alt="" aria-hidden="true" data-card-img-alt
+               ${alt ? imgAttrs(alt, IMG_W.card) : "hidden"} />
         </a>
         ${p.quantity > 0 ? `<button class="card__add" data-add="${esc(p.id)}" data-card-add>Add to cart +</button>` : `<button class="card__add" data-card-add hidden></button>`}
       </div>
@@ -513,8 +479,7 @@ function showVariant(card, id) {
   set("[data-card-img-alt]", (el) => {
     const alt = hoverUrl(p);
     el.hidden = !alt;
-    // Left unfetched until the pointer asks for it, exactly as on first paint.
-    if (alt) { el.dataset.src = alt; el.removeAttribute("src"); }
+    if (alt) setImg(el, alt, IMG_W.card);
     // Whether this colour has a second shot at all; the listener above reads
     // it to decide if hovering the photo should swap.
     card.classList.toggle("card--has-alt", !!alt);
@@ -605,7 +570,7 @@ document.addEventListener("mouseover", (e) => {
 
   document.querySelectorAll(".card--show-alt")
     .forEach((c) => { if (c !== show) c.classList.remove("card--show-alt"); });
-  if (show) { hydrateAlt(show); show.classList.add("card--show-alt"); }
+  if (show) show.classList.add("card--show-alt");
 });
 
 // Hover (and tap) a swatch → swap the card over to that colour.
