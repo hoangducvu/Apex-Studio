@@ -6,6 +6,15 @@
   <title>Product — LUMLA GLASSES</title>
   <meta name="description" content="LUMLA GLASSES product details — premium eyewear, prices in EUR." />
   <link rel="icon" href="/assets/lumla/logo.png" type="image/png" />
+  <link rel="preconnect" href="https://rejuwxaijqdqbqrufacn.supabase.co" crossorigin />
+  <!-- The catalog is the page: ask for it here, so the request is in flight
+       while the stylesheet and the fonts are still downloading instead of
+       waiting for script.js to be fetched, parsed and run. -->
+  <script>
+    window.__catalog = fetch("/api/products", { signal: AbortSignal.timeout(8000) });
+    window.__catalog.catch(() => {});   // answered for real in loadProducts()
+  </script>
+  <script src="/script.js" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
@@ -369,6 +378,5 @@
     </div><!-- /.co -->
   </div><!-- /.co-overlay -->
 
-  <script src="/script.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const { supabase, json, options } = require("./_helpers");
+const { supabase, json, cachedJson, options } = require("./_helpers");
 
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return options();
@@ -11,5 +11,5 @@ exports.handler = async (event) => {
     .order("created_at", { ascending: true });
 
   if (error) return json(500, { error: error.message });
-  return json(200, data);
+  return cachedJson(data);
 };

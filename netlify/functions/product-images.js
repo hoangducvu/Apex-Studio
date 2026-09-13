@@ -9,7 +9,7 @@
  *   GET  /api/product-images   → { "<productId>": ["url", …], … }
  *   POST /api/product-images   → merge { id, images: [...] }  (admin key)
  */
-const { supabase, json, options, requireAdmin, normalizeImages } = require("./_helpers");
+const { supabase, json, cachedJson, options, requireAdmin, normalizeImages } = require("./_helpers");
 
 const BUCKET = "site-meta";
 const FILE   = "product-images.json";
@@ -36,7 +36,7 @@ exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return options();
 
   if (event.httpMethod === "GET") {
-    return json(200, await readMap());
+    return cachedJson(await readMap());
   }
 
   if (event.httpMethod === "POST" || event.httpMethod === "PUT") {

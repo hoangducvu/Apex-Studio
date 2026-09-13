@@ -9,7 +9,7 @@
  *   GET  /api/variant-groups   → { "<productId>": { group, color }, … }
  *   POST /api/variant-groups   → merge { id, group, color }  (admin key)
  */
-const { supabase, json, options, requireAdmin } = require("./_helpers");
+const { supabase, json, cachedJson, options, requireAdmin } = require("./_helpers");
 
 const BUCKET = "site-meta";
 const FILE   = "variant-groups.json";
@@ -36,7 +36,7 @@ exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return options();
 
   if (event.httpMethod === "GET") {
-    return json(200, await readMap());
+    return cachedJson(await readMap());
   }
 
   if (event.httpMethod === "POST" || event.httpMethod === "PUT") {

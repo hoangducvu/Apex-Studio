@@ -217,6 +217,73 @@ function resolveUrl(src) {
   return /^(https?:)?\/\//.test(s) || s.startsWith("/") ? s : "/" + s;
 }
 
+/* ── Sized delivery ───────────────────────────────────────────────
+ * Shots are uploaded at full resolution — around 700 KB of PNG each, and the
+ * catalog paints dozens of them at once. Supabase resizes and re-encodes on
+ * request, so ask it for the size the slot actually paints: a card image comes
+ * back as ~50 KB of WebP instead of 1.2 MB of PNG. Alpha survives the
+ * re-encode, which matters here — the cut-outs are blended with multiply, and
+ * a flattened background would box every frame in white.
+ *
+ * Only Storage URLs can be transformed. The bundled assets/ fallbacks and any
+ * hand-entered URL are handed back untouched, and a transform that fails drops
+ * the <img> back to the original (see the listener below).
+ *
+ * Widths are roughly twice the CSS box, so shots stay sharp on the retina
+ * screens most of the traffic arrives on. resize=contain is not optional:
+ * given a width alone Supabase keeps the original height and squashes the
+ * frame sideways.
+ */
+const IMG_W = { card: 700, swatch: 140, main: 1200, thumb: 220 };
+const OBJECT_PATH = "/storage/v1/object/public/";
+
+function sized(src, width) {
+  const u = String(src || "");
+  if (!width || u.includes("?") || !u.includes("supabase.co") || !u.includes(OBJECT_PATH)) return u;
+  return u.replace(OBJECT_PATH, "/storage/v1/render/image/public/") +
+    "?width=" + width + "&resize=contain&quality=75";
+}
+
+/* Attributes for an <img> that should arrive at `width` pixels. The cards in
+ * the first rows pass eager = true so the browser fetches them straight away
+ * instead of holding them for the lazy-load pass. */
+function imgAttrs(src, width, eager) {
+  const small = sized(src, width);
+  return `src="${esc(small)}"` +
+    (small !== src ? ` data-full="${esc(src)}"` : "") +
+    ` decoding="async" ` + (eager ? `fetchpriority="high"` : `loading="lazy"`);
+}
+
+// Repoint an <img> already on the page — a card swapping to another colour.
+function setImg(el, src, width) {
+  const small = sized(src, width);
+  el.src = small;
+  if (small !== src) el.dataset.full = src;
+  else delete el.dataset.full;
+  delete el.dataset.fellBack;
+}
+
+/* A sized URL that fails falls back to the original, once. Transformations are
+ * a Supabase add-on; if one is ever switched off the catalog keeps its
+ * pictures instead of showing a page of broken frames. `error` does not
+ * bubble, so this listens in the capture phase. */
+document.addEventListener("error", (e) => {
+  const img = e.target;
+  if (!img || img.tagName !== "IMG" || !img.dataset.full || img.dataset.fellBack) return;
+  img.dataset.fellBack = "1";
+  img.src = img.dataset.full;
+}, true);
+
+/* The hover shot is fetched only once a pointer actually reaches the card.
+ * Most visitors never see it, and loading it up front doubles the weight of
+ * the catalog for nothing. */
+function hydrateAlt(card) {
+  const el = card.querySelector("[data-card-img-alt][data-src]");
+  if (!el) return;
+  setImg(el, el.dataset.src, IMG_W.card);
+  el.removeAttribute("data-src");
+}
+
 // The full gallery, main shot first, always at least one entry.
 function imagesOf(p) {
   if (!p) return [];
@@ -295,9 +362,9 @@ function renderProductDetail() {
       <div class="card__swatches">
         ${siblings.map((v) => `
           <a class="swatch${v.id === p.id ? " is-active" : ""}" href="/products/${encodeURIComponent(v.id)}"
-             data-preview="${esc(imgUrl(v))}" title="${esc(colorOf(v))} — ${esc(fmt(v.price))}">
+             data-preview="${esc(sized(imgUrl(v), IMG_W.main))}" title="${esc(colorOf(v))} — ${esc(fmt(v.price))}">
             <span class="swatch__thumb">
-              <img src="${esc(imgUrl(v))}" alt="${esc(colorOf(v))}" loading="lazy" />
+              <img ${imgAttrs(imgUrl(v), IMG_W.swatch)} alt="${esc(colorOf(v))}" />
               ${v.badge ? `<span class="swatch__badge ${/sale/i.test(v.badge) ? "swatch__badge--sale" : ""}">${esc(v.badge)}</span>` : ""}
             </span>
           </a>`).join("")}
@@ -311,7 +378,7 @@ function renderProductDetail() {
       ${shots.map((src, i) => `
         <button type="button" class="pd__thumb${i === 0 ? " is-active" : ""}"
                 data-shot="${esc(src)}" aria-label="View image ${i + 1} of ${shots.length}">
-          <img src="${esc(src)}" alt="" loading="lazy" />
+          <img ${imgAttrs(src, IMG_W.thumb)} alt="" />
         </button>`).join("")}
     </div>` : "";
 
@@ -319,8 +386,9 @@ function renderProductDetail() {
     <div class="pd__col">
       <div class="pd__media${shots[1] ? " pd__media--has-alt" : ""}">
         ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}">${esc(p.badge)}</span>` : ""}
-        <img src="${esc(shots[0])}" alt="${esc(p.name)} glasses" id="pdMainImg" data-default="${esc(shots[0])}" />
-        ${shots[1] ? `<img class="pd__media-alt" src="${esc(shots[1])}" alt="" aria-hidden="true" id="pdAltImg" />` : ""}
+        <img ${imgAttrs(shots[0], IMG_W.main, true)} alt="${esc(p.name)} glasses" id="pdMainImg"
+             data-default="${esc(sized(shots[0], IMG_W.main))}" />
+        ${shots[1] ? `<img class="pd__media-alt" ${imgAttrs(shots[1], IMG_W.main)} alt="" aria-hidden="true" id="pdAltImg" />` : ""}
       </div>
       ${galleryHtml}
     </div>
@@ -367,11 +435,11 @@ function renderProductDetail() {
       const src  = thumb.dataset.shot;
       const alt  = document.getElementById("pdAltImg");
       const main = document.getElementById("pdMainImg");
-      if (main) { main.src = src; main.dataset.default = src; }
+      if (main) { setImg(main, src, IMG_W.main); main.dataset.default = main.src; }
       if (alt) {
         const next = shots[shots.indexOf(src) + 1];
         alt.hidden = !next;
-        if (next) alt.src = next;
+        if (next) setImg(alt, next, IMG_W.main);
       }
       gallery.querySelectorAll(".pd__thumb").forEach((t) =>
         t.classList.toggle("is-active", t === thumb));
@@ -394,8 +462,10 @@ function renderProductDetail() {
 }
 
 /* ── Product grid (colour variants collapsed into one card) ─────────────── */
-function cardHtml(group) {
+function cardHtml(group, index) {
   const p = group.items[0];
+  // The first rows are on screen before anything scrolls — fetch them now.
+  const eager = index < 4;
   const many = group.items.length > 1;
 
   const swatches = many ? `
@@ -404,7 +474,7 @@ function cardHtml(group) {
         <button type="button" class="swatch${i === 0 ? " is-active" : ""}"
                 data-variant="${esc(v.id)}" title="${esc(colorOf(v))}" aria-label="${esc(colorOf(v))}">
           <span class="swatch__thumb">
-            <img src="${esc(imgUrl(v))}" alt="${esc(colorOf(v))}" loading="lazy" />
+            <img ${imgAttrs(imgUrl(v), IMG_W.swatch)} alt="${esc(colorOf(v))}" />
             ${v.badge ? `<span class="swatch__badge ${/sale/i.test(v.badge) ? "swatch__badge--sale" : ""}">${esc(v.badge)}</span>` : ""}
           </span>
         </button>`).join("")}
@@ -416,9 +486,9 @@ function cardHtml(group) {
         ${p.badge ? `<span class="card__badge ${/sale/i.test(p.badge) ? "card__badge--sale" : ""}" data-card-badge>${esc(p.badge)}</span>` : `<span class="card__badge" data-card-badge hidden></span>`}
         ${p.quantity === 0 ? `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock>SOLD OUT</span>` : `<span class="card__badge card__badge--soft card__badge--stock" data-card-stock hidden></span>`}
         <a class="card__media-link" href="/products/${encodeURIComponent(p.id)}" data-card-link aria-label="View ${esc(p.name)}">
-          <img src="${imgUrl(p)}" alt="${esc(p.name)} glasses" data-card-img loading="lazy" />
-          <img class="card__media-alt" src="${esc(hoverUrl(p) || "")}" alt="" aria-hidden="true"
-               data-card-img-alt loading="lazy" ${hoverUrl(p) ? "" : "hidden"} />
+          <img ${imgAttrs(imgUrl(p), IMG_W.card, eager)} alt="${esc(p.name)} glasses" data-card-img />
+          <img class="card__media-alt" alt="" aria-hidden="true" decoding="async"
+               data-card-img-alt data-src="${esc(hoverUrl(p) || "")}" ${hoverUrl(p) ? "" : "hidden"} />
         </a>
         ${p.quantity > 0 ? `<button class="card__add" data-add="${esc(p.id)}" data-card-add>Add to cart +</button>` : `<button class="card__add" data-card-add hidden></button>`}
       </div>
@@ -439,11 +509,12 @@ function showVariant(card, id) {
   const p = PRODUCTS.find((x) => x.id === id);
   if (!p) return;
   const set = (sel, fn) => { const el = card.querySelector(sel); if (el) fn(el); };
-  set("[data-card-img]", (el) => { el.src = imgUrl(p); el.alt = `${p.name} glasses`; });
+  set("[data-card-img]", (el) => { setImg(el, imgUrl(p), IMG_W.card); el.alt = `${p.name} glasses`; });
   set("[data-card-img-alt]", (el) => {
     const alt = hoverUrl(p);
     el.hidden = !alt;
-    if (alt) el.src = alt;
+    // Left unfetched until the pointer asks for it, exactly as on first paint.
+    if (alt) { el.dataset.src = alt; el.removeAttribute("src"); }
     // Whether this colour has a second shot at all; the listener above reads
     // it to decide if hovering the photo should swap.
     card.classList.toggle("card--has-alt", !!alt);
@@ -513,7 +584,7 @@ function renderGrid() {
     grid.innerHTML = isProductPage ? "" : `<div class="grid-loading">No frames in this collection yet — check back soon.</div>`;
     return;
   }
-  grid.innerHTML = groups.map(cardHtml).join("");
+  grid.innerHTML = groups.map((g, i) => cardHtml(g, i)).join("");
   grid.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
 }
 
@@ -534,7 +605,7 @@ document.addEventListener("mouseover", (e) => {
 
   document.querySelectorAll(".card--show-alt")
     .forEach((c) => { if (c !== show) c.classList.remove("card--show-alt"); });
-  if (show) show.classList.add("card--show-alt");
+  if (show) { hydrateAlt(show); show.classList.add("card--show-alt"); }
 });
 
 // Hover (and tap) a swatch → swap the card over to that colour.
@@ -604,36 +675,86 @@ function renderCollectionArt() {
       new Date(b.created_at || 0) > new Date(a.created_at || 0) ? b : a);
     const img = el.querySelector("img");
     if (!img) return;
-    img.src = imgUrl(newest);
+    setImg(img, imgUrl(newest), IMG_W.main);
     img.alt = `${el.dataset.collection} collection`;
     el.classList.add("collection-card--shot");
   });
+}
+
+/* ── Catalog carry-over ──────────────────────────────────────────────────────
+ * Moving between the grid and a product page is the common path through the
+ * shop, and each hop used to start again from skeletons and wait on the
+ * network. The catalog from the previous page paints straight away instead;
+ * the live copy lands a moment later and replaces it, so nothing shown is
+ * ever more than one page view old. sessionStorage, so it goes when the tab
+ * does — a shopper who comes back tomorrow gets fresh stock.
+ */
+const CATALOG_CACHE_KEY = "lumla:catalog:v1";
+const CATALOG_CACHE_MAX_AGE = 15 * 60 * 1000;
+
+function readCachedCatalog() {
+  try {
+    const raw = sessionStorage.getItem(CATALOG_CACHE_KEY);
+    if (!raw) return null;
+    const c = JSON.parse(raw);
+    if (!c || !Array.isArray(c.products) || !c.products.length) return null;
+    if (Date.now() - (c.t || 0) > CATALOG_CACHE_MAX_AGE) return null;
+    return c;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedCatalog() {
+  try {
+    sessionStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({
+      t: Date.now(), products: PRODUCTS, groups: VARIANT_MAP, galleries: PRODUCT_IMAGES,
+    }));
+  } catch {
+    // Full or disabled — the cache is an optimisation, never a requirement.
+  }
+}
+
+/* Whether a column exists at all. PostgREST returns every selected column on
+ * every row, so a key absent from the whole payload means the migration that
+ * adds it has not been run — which is the only time the Storage-backed
+ * fallback maps are worth fetching. */
+function columnMissing(list, key) {
+  return !list.some((p) => key in p);
+}
+
+function renderCatalog() {
+  renderFilters();
+  renderGrid();
+  renderProductDetail();
+  renderCollectionArt();
+  renderCart();
 }
 
 async function loadProducts() {
   const want = new URLSearchParams(location.search).get("filter");
   if (want && filterBar) activeFilter = want;
 
-  // Skeletons first — never the built-in catalog. Everything below renders
-  // once, when the real answer is in, so the shopper sees one state change
-  // instead of the wrong frames followed by the right ones.
-  renderGrid();
-  renderProductDetail();
+  // Last page's catalog if there is one, skeletons if there isn't — never the
+  // built-in fallback, which is what used to flash the wrong frames up and
+  // call a real product missing for a moment.
+  const cached = readCachedCatalog();
+  if (cached) {
+    PRODUCTS       = cached.products;
+    VARIANT_MAP    = cached.groups    || {};
+    PRODUCT_IMAGES = cached.galleries || {};
+    CATALOG_STATE  = "ready";
+    renderCatalog();
+  } else {
+    renderGrid();
+    renderProductDetail();
+  }
 
   try {
-    const sideload = (url) =>
-      fetch(url, { signal: AbortSignal.timeout(8000) })
-        .then((r) => (r.ok ? r.json() : {}))
-        .catch(() => ({}));
-
-    const [res, groups, galleries] = await Promise.all([
-      fetch("/api/products", { signal: AbortSignal.timeout(8000) }),
-      sideload("/api/variant-groups"),
-      sideload("/api/product-images"),
-    ]);
-    VARIANT_MAP    = groups    && typeof groups    === "object" ? groups    : {};
-    PRODUCT_IMAGES = galleries && typeof galleries === "object" ? galleries : {};
-
+    // Every page that shows frames asks for this in its <head>, so the request
+    // is already in flight by the time this file has finished parsing.
+    const res = await (window.__catalog ||
+      fetch("/api/products", { signal: AbortSignal.timeout(8000) }));
     const data = await res.json();
     if (!res.ok || !Array.isArray(data) || !data.length) throw new Error("empty catalog");
     PRODUCTS = data;
@@ -641,15 +762,39 @@ async function loadProducts() {
   } catch {
     // API unreachable (offline, or served as plain static files) — stand the
     // built-in catalog up so the shop still works.
-    PRODUCTS = FALLBACK_PRODUCTS;
-    CATALOG_STATE = "failed";
+    if (CATALOG_STATE !== "ready") {
+      PRODUCTS = FALLBACK_PRODUCTS;
+      CATALOG_STATE = "failed";
+    }
+    renderCatalog();
+    return;
   }
 
-  renderFilters();
-  renderGrid();
-  renderProductDetail();
-  renderCollectionArt();
-  renderCart();
+  renderCatalog();
+  writeCachedCatalog();
+
+  /* The grouping and gallery maps behind /api/variant-groups and
+   * /api/product-images predate products.variant_group / color_label /
+   * images: two more function calls and two Supabase Storage downloads for
+   * data the rows already carry. They are only asked for when the columns are
+   * genuinely absent, and the grid no longer waits on the answer either way. */
+  const need = [];
+  if (columnMissing(PRODUCTS, "variant_group") || columnMissing(PRODUCTS, "color_label")) {
+    need.push(["/api/variant-groups", (v) => { VARIANT_MAP = v; }]);
+  }
+  if (columnMissing(PRODUCTS, "images")) {
+    need.push(["/api/product-images", (v) => { PRODUCT_IMAGES = v; }]);
+  }
+  if (!need.length) return;
+
+  await Promise.all(need.map(([url, apply]) =>
+    fetch(url, { signal: AbortSignal.timeout(8000) })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((v) => { if (v && typeof v === "object") apply(v); })
+      .catch(() => {})));
+
+  renderCatalog();
+  writeCachedCatalog();
 }
 
 /* ============================================================

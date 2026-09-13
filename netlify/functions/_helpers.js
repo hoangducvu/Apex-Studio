@@ -19,12 +19,31 @@ function requireAdmin(event) {
   return null;
 }
 
-function json(statusCode, data) {
+function json(statusCode, data, extraHeaders) {
   return {
     statusCode,
-    headers: { "Content-Type": "application/json", ...CORS },
+    headers: { "Content-Type": "application/json", ...CORS, ...extraHeaders },
     body: JSON.stringify(data),
   };
+}
+
+/* ── A read every shopper shares ─────────────────────────────────────────────
+ * The catalog is identical for everyone and changes only when the admin panel
+ * saves, so let the CDN answer for it instead of waking a function and a
+ * database round trip for every visitor: the browser keeps a copy for half a
+ * minute, the edge for a minute, and for ten minutes after that the edge
+ * serves what it has while fetching a fresh copy behind it. A price or stock
+ * edit is live within about a minute.
+ *
+ * Nothing a customer is charged depends on this being current — every order is
+ * re-priced from the database at checkout (create-payment-intent.js). Use it
+ * for public GETs only; an admin or per-customer response must never be handed
+ * to a shared cache.
+ */
+function cachedJson(data) {
+  return json(200, data, {
+    "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=600",
+  });
 }
 
 function options() {
@@ -122,6 +141,6 @@ function productName(styleName, colour) {
 }
 
 module.exports = {
-  supabase, CORS, requireAdmin, json, options,
+  supabase, CORS, requireAdmin, json, cachedJson, options,
   missingColumn, saveTolerant, normalizeImages, MAX_IMAGES, productName,
 };
