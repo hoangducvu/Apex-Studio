@@ -256,6 +256,77 @@
 
     .btn-add:hover { background: var(--accent2); }
 
+    /* ── TABLE TOOLS (search + sort) ────────────────────────────────────── */
+    .table-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .table-tools input[type="search"] {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Satoshi', system-ui, sans-serif;
+      font-size: 0.85rem;
+      padding: 9px 12px;
+      min-width: 240px;
+      flex: 1 1 240px;
+      max-width: 420px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .table-tools input[type="search"]:focus { border-color: var(--accent); }
+
+    .table-tools select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      padding: 9px 10px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .table-tools select:focus { border-color: var(--accent); }
+
+    .table-count {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    /* Sortable column headings — the arrow only shows on the active column. */
+    th.th-sort {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    th.th-sort:hover { color: var(--text); }
+
+    th.th-sort::after {
+      content: "↕";
+      display: inline-block;
+      margin-left: 6px;
+      opacity: 0.35;
+    }
+
+    th.th-sort[aria-sort="ascending"],
+    th.th-sort[aria-sort="descending"] { color: var(--accent); }
+
+    th.th-sort[aria-sort="ascending"]::after  { content: "↑"; opacity: 1; }
+    th.th-sort[aria-sort="descending"]::after { content: "↓"; opacity: 1; }
+
     /* ── TABLES ─────────────────────────────────────────────────────────── */
     .table-wrap {
       background: var(--bg2);
@@ -267,7 +338,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 700px;
+      min-width: 780px;
     }
 
     thead tr {
@@ -295,6 +366,13 @@
     tr:last-child td { border-bottom: none; }
 
     tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .td-added {
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      white-space: nowrap;
+    }
 
     .td-img img {
       width: 44px;
@@ -827,6 +905,116 @@
 
     .btn-cancel:hover { border-color: var(--text); color: var(--text); }
 
+    /* ── COLOUR ORDER MODAL ─────────────────────────────────────────────── */
+    /* The list is the storefront order: row 1 is the swatch shown first on the
+       shared card and the colour a shopper lands on. */
+    .swatch-note {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .swatch-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .swatch-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+      cursor: grab;
+    }
+
+    .swatch-row.dragging  { opacity: 0.4; }
+    .swatch-row.drop-target { border-color: var(--accent); }
+
+    .swatch-row img {
+      width: 46px;
+      height: 46px;
+      object-fit: cover;
+      border-radius: 3px;
+      background: var(--bg);
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+
+    .swatch-row__pos {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      width: 1.6em;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .swatch-row__name { display: block; flex: 1; min-width: 0; }
+
+    .swatch-row__colour {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .swatch-row__meta {
+      display: block;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .swatch-row__first { color: var(--accent); }
+
+    .swatch-row__bar { display: flex; gap: 4px; flex-shrink: 0; }
+
+    .swatch-row__bar button {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1;
+      padding: 6px 9px;
+      cursor: pointer;
+    }
+
+    .swatch-row__bar button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .swatch-row__bar button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .swatch-error {
+      color: #ff5f56;
+      font-size: 0.78rem;
+      min-height: 1.1em;
+      margin-top: 14px;
+    }
+
+    .btn-order {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      padding: 5px 9px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn-order:hover { border-color: var(--accent); color: var(--accent); }
+
     /* ── EMPTY STATE ───────────────────────────────────────────────────── */
     .empty-state {
       text-align: center;
@@ -938,22 +1126,46 @@
         <h2>Products</h2>
         <button class="btn-add" id="addProductBtn">+ Add Product</button>
       </div>
+      <div class="table-tools">
+        <input type="search" id="productSearch" placeholder="Search name, colour, category, badge or id…"
+               autocomplete="off" aria-label="Search products" aria-controls="productsTbody" />
+        <select id="productFilter" aria-label="Filter products">
+          <option value="all">ALL</option>
+          <option value="active">ACTIVE</option>
+          <option value="inactive">INACTIVE</option>
+          <option value="low">LOW STOCK (≤ 10)</option>
+          <option value="out">SOLD OUT</option>
+        </select>
+        <select id="productSort" aria-label="Sort products">
+          <option value="">SORT: DEFAULT</option>
+          <option value="name:1">NAME A–Z</option>
+          <option value="name:-1">NAME Z–A</option>
+          <option value="created:-1">NEWEST ADDED</option>
+          <option value="created:1">OLDEST ADDED</option>
+          <option value="price:1">PRICE LOW → HIGH</option>
+          <option value="price:-1">PRICE HIGH → LOW</option>
+          <option value="stock:1">STOCK LOW → HIGH</option>
+          <option value="stock:-1">STOCK HIGH → LOW</option>
+        </select>
+        <span class="table-count" id="productCount"></span>
+      </div>
       <div class="table-wrap">
         <table id="productsTable">
           <thead>
             <tr>
               <th>Image</th>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Price</th>
-              <th>Stock</th>
-              <th>Badge</th>
-              <th>Status</th>
+              <th class="th-sort" data-sort="name"     aria-sort="none" tabindex="0" title="Sort by name">Name</th>
+              <th class="th-sort" data-sort="category" aria-sort="none" tabindex="0" title="Sort by category">Category</th>
+              <th class="th-sort" data-sort="price"    aria-sort="none" tabindex="0" title="Sort by price">Price</th>
+              <th class="th-sort" data-sort="stock"    aria-sort="none" tabindex="0" title="Sort by stock">Stock</th>
+              <th class="th-sort" data-sort="badge"    aria-sort="none" tabindex="0" title="Sort by badge">Badge</th>
+              <th class="th-sort" data-sort="status"   aria-sort="none" tabindex="0" title="Sort by status">Status</th>
+              <th class="th-sort" data-sort="created"  aria-sort="none" tabindex="0" title="Sort by date added">Added</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody id="productsTbody">
-            <tr class="loading-row"><td colspan="8">LOADING...</td></tr>
+            <tr class="loading-row"><td colspan="9">LOADING...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1098,6 +1310,28 @@
           <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ── COLOUR ORDER — which swatch comes first ───────────────────────── -->
+  <div class="modal-overlay" id="swatchOverlay">
+    <div class="modal">
+      <button class="modal-close" id="swatchClose">&#10005;</button>
+      <h3 id="swatchTitle">Colour order</h3>
+
+      <p class="swatch-note">
+        Drag a colour — or use the arrows — to set the order its swatches
+        appear in. The first one is the swatch shown first on the shared card
+        and the colour a shopper lands on.
+      </p>
+
+      <div class="swatch-list" id="swatchList"></div>
+      <div class="swatch-error" id="swatchError"></div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-save" id="swatchSaveBtn">Save order</button>
+        <button type="button" class="btn-cancel" id="swatchCancelBtn">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -1285,6 +1519,10 @@
     // Rows look products up by id rather than carrying a JSON copy of the whole
     // product in an onclick attribute — smaller HTML, and immune to quotes in names.
     let PRODUCTS_BY_ID = {};
+    // The whole catalogue as loaded; the table shows whatever survives the
+    // search box, the filter and the current column sort.
+    let ALL_PRODUCTS = [];
+    let PRODUCT_SORT = { key: "", dir: 1 };
 
     async function loadProducts() {
       const tbody = document.getElementById("productsTbody");
@@ -1302,9 +1540,10 @@
           p.images        = galleryOf(p);
         });
         PRODUCTS_BY_ID = Object.fromEntries(products.map(p => [p.id, p]));
-        renderProducts(products);
+        ALL_PRODUCTS = products;
+        renderProducts();
       } catch(e) {
-        tbody.innerHTML = `<tr class="loading-row"><td colspan="8">Error: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr class="loading-row"><td colspan="9">Error: ${e.message}</td></tr>`;
       }
     }
 
@@ -1319,17 +1558,138 @@
         .filter((s, i, a) => s && a.indexOf(s) === i);
     }
 
-    function renderProducts(data) {
+    // The name shown in the table — the shared card name when a product is one
+    // colour of a frame, otherwise its own.
+    function displayName(p) { return p.variant_group || p.name || ""; }
+
+    // Everything a shopper-facing row shows, lower-cased, so one box searches
+    // name, colour, category, badge and id at once.
+    function searchBlob(p) {
+      return [p.name, p.variant_group, p.color_label, p.category, p.badge, p.id]
+        .map(v => String(v || "").toLowerCase()).join(" ");
+    }
+
+    // When the product was added. The column is the source of truth; ids minted
+    // by this panel carry their own timestamp (`prod_<ms>_xxxxx`), which covers
+    // rows saved before created_at existed. An unknown date counts as 0.
+    function addedAt(p) {
+      const t = Date.parse(p.created_at || "");
+      if (!Number.isNaN(t)) return t;
+      const m = /^prod_(\d{10,})_/.exec(String(p.id || ""));
+      return m ? Number(m[1]) : 0;
+    }
+
+    function addedLabel(p) {
+      const t = addedAt(p);
+      if (!t) return "—";
+      return new Date(t).toLocaleDateString("en-GB",
+        { day: "2-digit", month: "short", year: "numeric" });
+    }
+
+    const SORT_VALUES = {
+      name:     p => displayName(p).toLowerCase(),
+      created:  p => addedAt(p),
+      category: p => String(p.category || "").toLowerCase(),
+      price:    p => Number(p.price) || 0,
+      stock:    p => Number(p.quantity) || 0,
+      badge:    p => String(p.badge || "").toLowerCase(),
+      status:   p => (p.active ? 1 : 0),
+    };
+
+    function visibleProducts() {
+      const q = (document.getElementById("productSearch")?.value || "").trim().toLowerCase();
+      const terms = q ? q.split(/\s+/) : [];
+      const filter = document.getElementById("productFilter")?.value || "all";
+
+      let rows = ALL_PRODUCTS.filter(p => {
+        if (terms.length) {
+          const blob = searchBlob(p);
+          if (!terms.every(t => blob.includes(t))) return false;
+        }
+        if (filter === "active")   return !!p.active;
+        if (filter === "inactive") return !p.active;
+        if (filter === "low")      return Number(p.quantity) > 0 && Number(p.quantity) <= 10;
+        if (filter === "out")      return Number(p.quantity) === 0;
+        return true;
+      });
+
+      const val = SORT_VALUES[PRODUCT_SORT.key];
+      if (val) {
+        // Sort a copy — ALL_PRODUCTS keeps the order the API sent.
+        rows = rows.slice().sort((a, b) => {
+          const x = val(a), y = val(b);
+          if (typeof x === "number" && typeof y === "number") return (x - y) * PRODUCT_SORT.dir;
+          return String(x).localeCompare(String(y), undefined, { numeric: true }) * PRODUCT_SORT.dir;
+        });
+      }
+      return rows;
+    }
+
+    // The dropdown and the column headings drive the same sort, so whichever
+    // one you use, the other shows what it did.
+    function applySort(key, dir) {
+      PRODUCT_SORT = SORT_VALUES[key] ? { key, dir } : { key: "", dir: 1 };
+      document.querySelectorAll("#productsTable th.th-sort").forEach(th => {
+        th.setAttribute("aria-sort", th.dataset.sort !== PRODUCT_SORT.key
+          ? "none"
+          : (PRODUCT_SORT.dir === 1 ? "ascending" : "descending"));
+      });
+      const sel = document.getElementById("productSort");
+      if (sel) {
+        const want = PRODUCT_SORT.key ? `${PRODUCT_SORT.key}:${PRODUCT_SORT.dir}` : "";
+        // A column the dropdown has no preset for (category, badge, status)
+        // leaves it blank rather than showing a sort that is not in force.
+        sel.value = [...sel.options].some(o => o.value === want) ? want : "";
+      }
+      renderProducts();
+    }
+
+    function sortProductsBy(key) {
+      if (!SORT_VALUES[key]) return;
+      // Dates read best newest-first, so that heading starts descending.
+      const first = key === "created" ? -1 : 1;
+      applySort(key, PRODUCT_SORT.key === key ? -PRODUCT_SORT.dir : first);
+    }
+
+    document.querySelectorAll("#productsTable th.th-sort").forEach(th => {
+      th.addEventListener("click", () => sortProductsBy(th.dataset.sort));
+      th.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); sortProductsBy(th.dataset.sort); }
+      });
+    });
+    document.getElementById("productSort")?.addEventListener("change", (e) => {
+      const [key, dir] = String(e.target.value || "").split(":");
+      applySort(key || "", Number(dir) === -1 ? -1 : 1);
+    });
+    document.getElementById("productSearch")?.addEventListener("input", () => renderProducts());
+    document.getElementById("productFilter")?.addEventListener("change", () => renderProducts());
+
+    function renderProducts() {
       const tbody = document.getElementById("productsTbody");
+      const count = document.getElementById("productCount");
+      const data  = visibleProducts();
+
+      if (count) {
+        count.textContent = ALL_PRODUCTS.length
+          ? (data.length === ALL_PRODUCTS.length
+              ? `${ALL_PRODUCTS.length} products`
+              : `${data.length} of ${ALL_PRODUCTS.length}`)
+          : "";
+      }
+
+      if (!ALL_PRODUCTS.length) {
+        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">No products yet. Add your first one!</div></td></tr>`;
+        return;
+      }
       if (!data.length) {
-        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">No products yet. Add your first one!</div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">No products match that search.</div></td></tr>`;
         return;
       }
 
       // Feed the Name autocomplete with the style names already in use, so a
       // second colour of an existing frame joins its card instead of typo-ing
-      // into a card of its own.
-      const groups = [...new Set(data.map(p => (p.variant_group || "").trim()).filter(Boolean))].sort();
+      // into a card of its own. Every product counts, not just the shown ones.
+      const groups = [...new Set(ALL_PRODUCTS.map(p => (p.variant_group || "").trim()).filter(Boolean))].sort();
       const dl = document.getElementById("variantGroups");
       if (dl) dl.innerHTML = groups.map(g => `<option value="${escHtml(g)}"></option>`).join("");
 
@@ -1356,7 +1716,7 @@
             ${p.images.length > 1 ? `<span style="display:block;text-align:center;margin-top:4px;font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--muted)">${p.images.length} imgs</span>` : ""}
           </td>
           <td class="td-name">
-            ${escHtml(p.variant_group || p.name)}
+            ${escHtml(displayName(p))}
             ${p.color_label ? `<span style="display:block;color:var(--accent);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;margin-top:3px">◈ ${escHtml(p.color_label)}</span>` : ""}
           </td>
           <td style="color:var(--muted)">${escHtml(p.category || "—")}</td>
@@ -1371,7 +1731,11 @@
           </td>
           <td>${badgeHtml}</td>
           <td>${statusHtml}</td>
+          <td class="td-added">${escHtml(addedLabel(p))}</td>
           <td style="white-space:nowrap">
+            ${siblingsOf(p).length > 1
+              ? `<button class="btn-order" onclick="openSwatchOrder('${escHtml(p.id)}')" title="Set which colour's swatch comes first">◈ Order</button>`
+              : ""}
             <button class="btn-edit" onclick="openEditModalById('${escHtml(p.id)}')">Edit</button>
             <button class="btn-toggle" onclick="setProductActive('${escHtml(p.id)}', ${p.active ? "false" : "true"})"
                     title="${p.active ? "Hide from the storefront — keeps the product" : "Show on the storefront again"}">${p.active ? "Deactivate" : "Activate"}</button>
@@ -1765,6 +2129,157 @@
       renderGallery();
     }
 
+    /* ── Colour order ───────────────────────────────────────────────────────
+     * Swatch order on the storefront is products.sort_order ascending (see
+     * netlify/functions/products.js), so reordering colours means rewriting
+     * that number on each one. Saving only permutes the values the group
+     * already holds, starting at its lowest: the group keeps the same place
+     * in the shop grid, and only the order inside its card changes.
+     */
+    const swatchOverlay = document.getElementById("swatchOverlay");
+    const swatchList    = document.getElementById("swatchList");
+    let swatchOrder = [];    // product ids, in the order being edited
+    let swatchDragFrom = -1;
+
+    // Every colour of the same frame, in the order the storefront shows them.
+    function siblingsOf(p) {
+      const group = String(p?.variant_group || "").trim().toUpperCase();
+      if (!group) return p ? [p] : [];
+      return ALL_PRODUCTS
+        .filter(x => String(x.variant_group || "").trim().toUpperCase() === group)
+        .sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0)
+                     || addedAt(a) - addedAt(b));
+    }
+
+    function openSwatchOrder(id) {
+      const p = PRODUCTS_BY_ID[id];
+      if (!p) return;
+      const sibs = siblingsOf(p);
+      if (sibs.length < 2) return;
+      swatchOrder = sibs.map(x => x.id);
+      document.getElementById("swatchTitle").textContent =
+        `Colour order — ${displayName(p)}`;
+      document.getElementById("swatchError").textContent = "";
+      renderSwatchOrder();
+      swatchOverlay.classList.add("open");
+    }
+
+    function closeSwatchOrder() {
+      swatchOverlay.classList.remove("open");
+      swatchOrder = [];
+      swatchDragFrom = -1;
+    }
+
+    function renderSwatchOrder() {
+      swatchList.innerHTML = swatchOrder.map((id, i) => {
+        const p = PRODUCTS_BY_ID[id] || {};
+        const colour = p.color_label || p.name || id;
+        const meta = i === 0
+          ? `<span class="swatch-row__first">Shown first</span>`
+          : `${p.active ? "Active" : "Inactive"} · ${p.quantity === 0 ? "Sold out" : p.quantity + " in stock"}`;
+        return `
+          <div class="swatch-row" draggable="true" data-index="${i}" title="Drag to reorder">
+            <span class="swatch-row__pos">${i + 1}</span>
+            <img src="${escHtml(p.image || "")}" alt="" onerror="this.style.opacity=0.2" />
+            <span class="swatch-row__name">
+              <span class="swatch-row__colour">${escHtml(colour)}</span>
+              <span class="swatch-row__meta">${meta}</span>
+            </span>
+            <span class="swatch-row__bar">
+              <button type="button" onclick="moveSwatch(${i}, -1)" ${i === 0 ? "disabled" : ""} title="Move up">↑</button>
+              <button type="button" onclick="moveSwatch(${i}, 1)" ${i === swatchOrder.length - 1 ? "disabled" : ""} title="Move down">↓</button>
+            </span>
+          </div>`;
+      }).join("");
+    }
+
+    function moveSwatch(index, delta) {
+      const to = index + delta;
+      if (to < 0 || to >= swatchOrder.length) return;
+      const [item] = swatchOrder.splice(index, 1);
+      swatchOrder.splice(to, 0, item);
+      renderSwatchOrder();
+    }
+
+    swatchList.addEventListener("dragstart", (e) => {
+      const row = e.target.closest(".swatch-row");
+      if (!row) return;
+      swatchDragFrom = Number(row.dataset.index);
+      row.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      // Firefox needs data on the transfer for the drag to start at all
+      e.dataTransfer.setData("text/plain", String(swatchDragFrom));
+    });
+
+    swatchList.addEventListener("dragover", (e) => {
+      const row = e.target.closest(".swatch-row");
+      if (!row || swatchDragFrom < 0) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      swatchList.querySelectorAll(".swatch-row").forEach(r =>
+        r.classList.toggle("drop-target", r === row && Number(r.dataset.index) !== swatchDragFrom));
+    });
+
+    swatchList.addEventListener("drop", (e) => {
+      const row = e.target.closest(".swatch-row");
+      if (!row || swatchDragFrom < 0) return;
+      e.preventDefault();
+      const to = Number(row.dataset.index);
+      if (to !== swatchDragFrom) {
+        const [item] = swatchOrder.splice(swatchDragFrom, 1);
+        swatchOrder.splice(to, 0, item);
+      }
+      swatchDragFrom = -1;
+      renderSwatchOrder();
+    });
+
+    swatchList.addEventListener("dragend", () => {
+      swatchDragFrom = -1;
+      renderSwatchOrder();
+    });
+
+    document.getElementById("swatchClose").addEventListener("click", closeSwatchOrder);
+    document.getElementById("swatchCancelBtn").addEventListener("click", closeSwatchOrder);
+    swatchOverlay.addEventListener("click", (e) => {
+      if (e.target === swatchOverlay) closeSwatchOrder();
+    });
+
+    document.getElementById("swatchSaveBtn").addEventListener("click", async () => {
+      const btn = document.getElementById("swatchSaveBtn");
+      const err = document.getElementById("swatchError");
+      const ids = swatchOrder.slice();
+
+      // Number from the group's own lowest sort_order, so the card stays put
+      // in the grid and only the colours inside it move.
+      const base = Math.min(...ids.map(id => Number(PRODUCTS_BY_ID[id]?.sort_order) || 0));
+      const writes = ids
+        .map((id, i) => ({ id, sort_order: base + i }))
+        .filter(w => (Number(PRODUCTS_BY_ID[w.id]?.sort_order) || 0) !== w.sort_order);
+
+      if (!writes.length) { closeSwatchOrder(); return; }
+
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+      err.textContent = "";
+      try {
+        // One at a time: /api/admin/products takes a single product per call.
+        for (const w of writes) {
+          await apiFetch("/api/admin/products", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ op: "update", id: w.id, sort_order: w.sort_order }),
+          });
+        }
+        closeSwatchOrder();
+        loadProducts();
+      } catch (e) {
+        err.textContent = e.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Save order";
+      }
+    });
+
     /* Drag to reorder */
     imgList.addEventListener("dragstart", (e) => {
       const tile = e.target.closest(".img-tile");
@@ -1999,6 +2514,7 @@
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
       if (dangerOverlay.classList.contains("open")) closeDangerModal();
+      else if (swatchOverlay.classList.contains("open")) closeSwatchOrder();
       else if (modalOverlay.classList.contains("open")) closeModal();
     });
 
