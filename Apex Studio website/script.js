@@ -31,31 +31,31 @@ function unitPrice(p) { return p?.price || 0; }
 /* ============================================================
    SHIPPING
    ------------------------------------------------------------
-   MaltaPost prices Malta → anywhere in the EU as one zone, so the
-   destination never changes the cost — only the weight of the parcel does,
-   and a packed pair sits in the 101–300 g band (€5.81 untracked / €13.29
-   tracked). These rates round that up to absorb two-pair orders.
+   One service per destination, at a flat rate: a local hop within Malta,
+   and tracked post everywhere else. Nothing abroad goes untracked, so the
+   destination — not the customer — decides which of these applies, and
+   there is no cheaper service to pick.
 
    Mirrored server-side in create-payment-intent.js, which always
    recalculates the charge — this is only the storefront view.
    ============================================================ */
 const SHIPPING = {
-  standard: {
-    price: 5.95,
-    label: "Standard",
+  malta: {
+    price: 3.5,
+    label: "MaltaPost",
     sub:   "No tracking",
   },
-  tracked: {
-    price: 13.95,
+  intl: {
+    price: 13,
     label: "Tracked & signed",
     sub:   "Tracked, signed for on delivery",
   },
 };
-const FREE_SHIPPING_OVER = 90;
+const FREE_SHIPPING_OVER = 100;
 
-/* How long the parcel is in transit is set by where it lands, not by which
-   service carries it: Malta is a local hop, everywhere else crosses a border.
-   Both services quote the same window for a given destination. */
+/* How long the parcel is in transit is set by where it lands, the same thing
+   that decides which service carries it: Malta is a local hop, everywhere
+   else crosses a border. */
 const DELIVERY = {
   malta: { label: "Malta",         eta: "2–3 days",   long: "2–3 business days" },
   intl:  { label: "International", eta: "10–20 days", long: "10–20 business days" },
@@ -65,12 +65,6 @@ function destKey(country) {
   return String(country || "").trim().toLowerCase() === "malta" ? "malta" : "intl";
 }
 
-/* Malta gets one service: free, untracked. There is no tracked option to
-   choose, so the method is decided by the destination, not the customer.
-   Mirrored in create-payment-intent.js, which forces the same thing. */
-function methodsFor(country) {
-  return destKey(country) === "malta" ? ["standard"] : Object.keys(SHIPPING);
-}
 function chosenCountry() {
   return document.getElementById("coCountry")?.value || "";
 }
@@ -84,19 +78,15 @@ function deliveryLine(country = chosenCountry()) {
   return `${d.label} · ${d.eta}`;
 }
 
-let shipMethod = "standard";
-
-/* Two things waive the standard rate: a Malta address, which is a local hop
-   the shop absorbs, and an order over the threshold. Everywhere else pays the
-   normal fee. Either way tracked costs the difference, so the shop spends the
-   same and upgrading stays worth it.
+/* Postage is the flat rate for where the parcel lands, and an order at or
+   over the threshold has it waived wherever it goes — the shop absorbs the
+   postage on a basket that size.
 
    Mirrored in create-payment-intent.js, which recalculates from the address
    Stripe is given — this is only what the customer is shown. */
-function shippingCost(method = shipMethod, goods = cartTotal(), country = chosenCountry()) {
-  const opt = SHIPPING[method] || SHIPPING.standard;
-  const free = destKey(country) === "malta" || goods >= FREE_SHIPPING_OVER;
-  return Math.round(Math.max(0, opt.price - (free ? SHIPPING.standard.price : 0)) * 100) / 100;
+function shippingCost(goods = cartTotal(), country = chosenCountry()) {
+  if (goods >= FREE_SHIPPING_OVER) return 0;
+  return SHIPPING[destKey(country)].price;
 }
 
 // What the card is actually charged: goods after discount, plus postage.
@@ -422,7 +412,7 @@ function renderProductDetail() {
         <li><span>Fit</span> Freesize — suits most face shapes</li>
         <li><span>Lenses</span> UV400 protection</li>
         <li><span>Includes</span> Protective case &amp; cleaning cloth</li>
-        <li><span>Shipping</span> Free within Malta · international from ${fmt(SHIPPING.standard.price)}</li>
+        <li><span>Shipping</span> ${fmt(SHIPPING.malta.price)} within Malta · ${fmt(SHIPPING.intl.price)} tracked international · free over ${fmt(FREE_SHIPPING_OVER)}</li>
         <li><span>Delivery</span> ${deliveryLine()}</li>
       </ul>
     </div>`;
@@ -1088,7 +1078,6 @@ async function mountPaymentElement() {
         amount: orderTotal(),
         items: cartLines(),
         discountCode: promo?.code || "",
-        shippingMethod: shipMethod,
         email,
         shipping: { name: `${first} ${last}`.trim(), address, city, zip, country },
       }),
@@ -1207,36 +1196,30 @@ function renderCheckoutSummary() {
   }
   if (coShipNote) {
     const short = Math.round((FREE_SHIPPING_OVER - cartTotal()) * 100) / 100;
-    // Nothing to spend up to when the address already ships free.
-    coShipNote.hidden = short <= 0 || destKey(chosenCountry()) === "malta";
-    if (short > 0) coShipNote.textContent = `Spend ${fmtEur(short)} more for free standard shipping`;
+    // Every destination pays postage now, so every basket has a threshold to
+    // spend up to — there is no address the note would be wrong for.
+    coShipNote.hidden = short <= 0;
+    if (short > 0) coShipNote.textContent = `Spend ${fmtEur(short)} more for free shipping`;
   }
   coGrandTotal.textContent = fmtEur(orderTotal());
 }
 
-/* The two delivery choices, priced for the cart as it stands — the labels
-   show what this order would actually pay, threshold included. */
+/* The one service this address gets, priced for the cart as it stands — the
+   line shows what this order would actually pay, threshold included. There is
+   nothing to choose between, so it is stated rather than offered. */
 function renderShipOptions() {
   const wrap = document.getElementById("coShipOpts");
   if (!wrap) return;
-  const allowed = methodsFor(chosenCountry());
-  // Switching to Malta while "tracked" is selected would otherwise leave a
-  // choice ticked that is no longer on offer.
-  if (!allowed.includes(shipMethod)) shipMethod = allowed[0];
-
-  wrap.innerHTML = allowed.map((key) => {
-    const o = SHIPPING[key];
-    const cost = shippingCost(key);
-    return `
-      <label class="co__ship-opt${key === shipMethod ? " is-on" : ""}" data-ship="${key}">
-        <input type="radio" name="shipMethod" value="${key}"${key === shipMethod ? " checked" : ""} />
-        <span class="co__ship-text">
-          <span class="co__ship-name">${esc(o.label)}</span>
-          <span class="co__ship-sub">${esc(deliveryLine())} · ${esc(o.sub)}</span>
-        </span>
-        <span class="co__ship-price">${cost === 0 ? "FREE" : fmtEur(cost)}</span>
-      </label>`;
-  }).join("");
+  const o = SHIPPING[destKey(chosenCountry())];
+  const cost = shippingCost();
+  wrap.innerHTML = `
+    <div class="co__ship-opt is-on">
+      <span class="co__ship-text">
+        <span class="co__ship-name">${esc(o.label)}</span>
+        <span class="co__ship-sub">${esc(deliveryLine())} · ${esc(o.sub)}</span>
+      </span>
+      <span class="co__ship-price">${cost === 0 ? "FREE" : fmtEur(cost)}</span>
+    </div>`;
 }
 
 function setCoStep(n) {
@@ -1251,16 +1234,6 @@ function setCoStep(n) {
   });
   coOverlay.scrollTo({ top: 0, behavior: "smooth" });
 }
-
-// Delivery choice — repricing the options keeps the free-shipping line honest
-// when the threshold changes what "tracked" costs.
-document.getElementById("coShipOpts")?.addEventListener("change", (e) => {
-  const opt = e.target.closest("[data-ship]");
-  if (!opt) return;
-  shipMethod = opt.dataset.ship;
-  renderShipOptions();
-  renderCheckoutSummary();
-});
 
 // Destination sets the transit window, so requote the options when it changes.
 document.getElementById("coCountry")?.addEventListener("change", () => {

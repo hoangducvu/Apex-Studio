@@ -12,33 +12,27 @@ const COUNTRY_CODES = {
 };
 
 /* ── Shipping (mirror of SHIPPING in script.js) ─────────────────────────────
-   MaltaPost prices Malta → anywhere in the EU as a single zone, so only the
-   weight of the parcel moves the cost, never the destination. A packed pair
-   sits in the 101–300 g band: €5.81 untracked, €13.29 tracked. These rates
-   round that up a little to absorb two-pair orders (301–500 g).
-
-   A Malta address ships free, untracked, and has no tracked option to pick.
-   International keeps both services, with orders over FREE_SHIPPING_OVER
-   waiving the standard rate and tracked costing the difference — so the shop
-   spends the same either way. */
+   One flat-rate service per destination: a local hop within Malta, tracked
+   post everywhere else. The customer picks nothing, so the browser has no
+   say in this — the address the payment is created with decides the service
+   and the rate, and an order at or over FREE_SHIPPING_OVER pays neither. */
 const SHIPPING_OPTIONS = {
-  standard: { price: 5.95,  label: "Standard (untracked)" },
-  tracked:  { price: 13.95, label: "Tracked & signed" },
+  malta: { price: 3.5, label: "MaltaPost (untracked)" },
+  intl:  { price: 13,  label: "Tracked & signed" },
 };
-const FREE_SHIPPING_OVER = 90;
+const FREE_SHIPPING_OVER = 100;
 
 // Anything that is not Malta is treated as international, matching the
 // storefront. Read from the address the payment is created with, never from
 // anything the browser asserts about the price.
-function shipsFree(country) {
-  return String(country || "").trim().toLowerCase() === "malta";
+function destKey(country) {
+  return String(country || "").trim().toLowerCase() === "malta" ? "malta" : "intl";
 }
 
-// Charge for `method`, given the goods total and where the parcel is going.
-function shippingCost(method, goodsTotal, country) {
-  const opt = SHIPPING_OPTIONS[method] || SHIPPING_OPTIONS.standard;
-  const free = shipsFree(country) || goodsTotal >= FREE_SHIPPING_OVER;
-  return round2(Math.max(0, opt.price - (free ? SHIPPING_OPTIONS.standard.price : 0)));
+// Charge for the goods total and where the parcel is going.
+function shippingCost(goodsTotal, country) {
+  if (goodsTotal >= FREE_SHIPPING_OVER) return 0;
+  return round2(SHIPPING_OPTIONS[destKey(country)].price);
 }
 
 /* Discount codes are managed in the admin panel and read here from the same
@@ -52,7 +46,7 @@ exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   try {
-    const { items, email, shipping, discountCode, shippingMethod } = JSON.parse(event.body || "{}");
+    const { items, email, shipping, discountCode } = JSON.parse(event.body || "{}");
     if (!Array.isArray(items) || !items.length) return json(400, { error: "Cart is empty" });
 
     // Price the order from the database — the amount sent by the browser is
@@ -87,11 +81,10 @@ exports.handler = async (event) => {
     const discount = deal ? round2((subtotal * deal.percent) / 100) : 0;
     const goods = round2(subtotal - discount);
 
-    /* Malta ships one way — free and untracked — so the destination decides
-       the service there, whatever the browser asked for. */
-    const asked  = SHIPPING_OPTIONS[shippingMethod] ? shippingMethod : "standard";
-    const method = shipsFree(shipping?.country) ? "standard" : asked;
-    const postage = shippingCost(method, goods, shipping?.country);
+    /* There is one service per destination, so the address settles both which
+       one this is and what it costs — nothing the browser sends is consulted. */
+    const method  = destKey(shipping?.country);
+    const postage = shippingCost(goods, shipping?.country);
     const total = round2(goods + postage);
 
     if (!(total > 0)) return json(400, { error: "Invalid amount" });

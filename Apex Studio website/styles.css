@@ -893,14 +893,13 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 
 /* delivery choice — one card per service, priced for the cart on screen */
 .co__ship-opts { display: grid; gap: 8px; }
+/* One service per destination, so this row states the delivery rather than
+   offering a choice: no pointer, no hover, nothing to click. */
 .co__ship-opt {
   display: flex; align-items: center; gap: 13px;
-  border: 1px solid var(--c-line); padding: 13px 15px; cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  border: 1px solid var(--c-line); padding: 13px 15px;
 }
-.co__ship-opt:hover { border-color: var(--c-line-2); }
 .co__ship-opt.is-on { border-color: var(--c-ink); background: var(--c-paper-2); }
-.co__ship-opt input { accent-color: #0a0a0a; margin: 0; flex: 0 0 auto; }
 .co__ship-text { flex: 1; display: block; }
 .co__ship-name { display: block; font-size: 0.86rem; font-weight: 600; }
 .co__ship-sub {
