@@ -232,6 +232,12 @@ function resolveUrl(src) {
  */
 const IMG_W = { card: 700, swatch: 200, main: 1200, thumb: 300 };
 const THUMB_MAX = 400;
+
+/* How many colour swatches a grid card shows before the rest fold into a "…"
+ * link. Wide is the desktop grid, narrow the one-or-two-column phone layout;
+ * the "…" takes the slot after the cap, so a card never shows more than
+ * cap + 1 boxes. */
+const SWATCH_CAP = { wide: 7, narrow: 5 };
 const OBJECT_PATH = "/storage/v1/object/public/";
 
 function sized(src, width) {
@@ -462,9 +468,25 @@ function cardHtml(group, index) {
    * swap visibly lagged the cursor. */
   const alt = hoverUrl(p);
 
+  /* A card with a dozen colours used to grow a wall of thumbnails taller than
+   * the frame it belongs to. Past SWATCH_CAP.wide on a desktop grid, or
+   * SWATCH_CAP.narrow on a phone, the last slot becomes a "…" that opens the
+   * product page, where every colour is laid out in full.
+   *
+   * Which cap applies is a question of viewport width, and a card is rendered
+   * once and then resized around, so both answers ship in the markup: enough
+   * swatches for the wide cap, and CSS that trims to the narrow one. The
+   * container carries how many colours there are so the stylesheet knows
+   * whether the "…" is earned at each width. */
+  const total = group.items.length;
+  const overflow = [
+    total > SWATCH_CAP.narrow ? "card__swatches--over-narrow" : "",
+    total > SWATCH_CAP.wide   ? "card__swatches--over-wide"   : "",
+  ].filter(Boolean).join(" ");
+
   const swatches = many ? `
-    <div class="card__swatches">
-      ${group.items.map((v, i) => `
+    <div class="card__swatches ${overflow}">
+      ${group.items.slice(0, SWATCH_CAP.wide + 1).map((v, i) => `
         <a class="swatch${i === 0 ? " is-active" : ""}" href="/products/${encodeURIComponent(v.id)}"
            data-variant="${esc(v.id)}" title="${esc(colorOf(v))}" aria-label="View ${esc(colorOf(v))}">
           <span class="swatch__thumb">
@@ -472,6 +494,11 @@ function cardHtml(group, index) {
             ${v.badge ? `<span class="swatch__badge ${/sale/i.test(v.badge) ? "swatch__badge--sale" : ""}">${esc(v.badge)}</span>` : ""}
           </span>
         </a>`).join("")}
+      ${overflow ? `
+        <a class="swatch swatch--more" href="/products/${encodeURIComponent(p.id)}" data-card-link
+           title="${total} colours" aria-label="View all ${total} colours of ${esc(styleName(p))}">
+          <span class="swatch__thumb"><span class="swatch__more-dots" aria-hidden="true">···</span></span>
+        </a>` : ""}
     </div>` : "";
 
   return `

@@ -521,6 +521,29 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 .section--dark .swatch:hover .swatch__thumb,
 .section--dark .swatch.is-active .swatch__thumb { border-color: #fff; }
 .section--dark .swatch.is-active .swatch__thumb { outline-color: #fff; }
+
+/* Overflow — the "…" slot.
+   A card ships up to eight swatches plus the "…"; how many of them show is a
+   question of width, answered here rather than by re-rendering on resize. The
+   wide grid keeps seven and the phone keeps five, and the "…" only appears at
+   a width where something is actually being hidden. */
+.swatch--more { display: none; }
+.swatch--more .swatch__thumb {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--c-paper);
+}
+.swatch__more-dots {
+  font-family: var(--font-tech); font-size: 0.9rem; font-weight: 700;
+  letter-spacing: 0.06em; line-height: 1; color: var(--c-text-soft);
+  transform: translateY(-0.28em);
+}
+.swatch--more:hover .swatch__more-dots { color: var(--c-ink); }
+.section--dark .swatch--more .swatch__thumb { background: var(--c-ink-2); }
+.section--dark .swatch__more-dots { color: var(--c-on-dark-soft); }
+.section--dark .swatch--more:hover .swatch__more-dots { color: #fff; }
+
+.card__swatches--over-wide .swatch:not(.swatch--more):nth-child(n+8) { display: none; }
+.card__swatches--over-wide .swatch--more { display: block; }
 .card__variant-count {
   color: var(--c-text-soft); font-family: var(--font-tech);
   font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; margin-top: 2px;
@@ -1101,6 +1124,8 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   .footer__top { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 860px) {
+  .card__swatches--over-narrow .swatch:not(.swatch--more):nth-child(n+6) { display: none; }
+  .card__swatches--over-narrow .swatch--more { display: block; }
   .nav__links { display: none; }
   .nav__burger { display: block; }
   .nav__inner { grid-template-columns: auto 1fr auto; }
