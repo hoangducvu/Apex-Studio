@@ -236,8 +236,14 @@ const THUMB_MAX = 400;
 /* How many colour swatches a grid card shows before the rest fold into a "…"
  * link. Wide is the desktop grid, narrow the one-or-two-column phone layout;
  * the "…" takes the slot after the cap, so a card never shows more than
- * cap + 1 boxes. */
+ * cap + 1 boxes.
+ *
+ * One colour over the cap is not worth hiding: spending the last box on a
+ * link to a page that shows the one frame already missing reads as a bug. So
+ * the "…" is earned only past cap + 1, and a card with exactly that many
+ * colours shows all of them. */
 const SWATCH_CAP = { wide: 7, narrow: 5 };
+const overCap = (total, cap) => total > cap + 1;
 const OBJECT_PATH = "/storage/v1/object/public/";
 
 function sized(src, width) {
@@ -480,8 +486,8 @@ function cardHtml(group, index) {
    * whether the "…" is earned at each width. */
   const total = group.items.length;
   const overflow = [
-    total > SWATCH_CAP.narrow ? "card__swatches--over-narrow" : "",
-    total > SWATCH_CAP.wide   ? "card__swatches--over-wide"   : "",
+    overCap(total, SWATCH_CAP.narrow) ? "card__swatches--over-narrow" : "",
+    overCap(total, SWATCH_CAP.wide)   ? "card__swatches--over-wide"   : "",
   ].filter(Boolean).join(" ");
 
   const swatches = many ? `

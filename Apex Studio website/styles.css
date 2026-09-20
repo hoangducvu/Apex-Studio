@@ -1126,6 +1126,17 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 @media (max-width: 860px) {
   .card__swatches--over-narrow .swatch:not(.swatch--more):nth-child(n+6) { display: none; }
   .card__swatches--over-narrow .swatch--more { display: block; }
+  /* Two 60 px boxes and a gap don't divide a phone-width card, so a wrapped
+     row of them left a ragged strip of dead space down the right. Grid picks
+     as many equal columns of at least 60 px as fit and stretches them to the
+     card's own width: two on a phone, more on a wide tablet, every row full
+     and flush either way. A short last row keeps the column width instead of
+     ballooning, which is what flex-grow would have done. */
+  .card .card__swatches {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  }
+  .card .swatch { width: auto; }
+  .card .swatch__thumb { width: 100%; height: auto; aspect-ratio: 1; }
   .nav__links { display: none; }
   .nav__burger { display: block; }
   .nav__inner { grid-template-columns: auto 1fr auto; }
