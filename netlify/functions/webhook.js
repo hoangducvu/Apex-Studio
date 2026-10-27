@@ -1,16 +1,6 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const nodemailer = require("nodemailer");
 const { supabase, missingColumn } = require("./_helpers");
-
-let mailer = null;
-if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-  mailer = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: process.env.SMTP_PORT === "465",
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  });
-}
+const { sendMail, confirmOrder, mailStatus } = require("./_mail");
 
 /* ── Shipping address ────────────────────────────────────────────────────────
  * The checkout puts the delivery address on the PaymentIntent, so the payment
@@ -58,26 +48,26 @@ function addressLines(row) {
 }
 
 async function notifyOwner(pi) {
-  if (!mailer || !process.env.OWNER_EMAIL) return;
+  if (!mailStatus().configured) throw new Error(`Order notifications not configured: ${mailStatus().missing.join(", ")}`);
   const items = JSON.parse(pi.metadata?.items_json || "[]");
   const euros = (pi.amount_received / 100).toFixed(2);
   const lines = addressLines(shippingRow(pi));
-  await mailer.sendMail({
+  await sendMail({
     from: `"LUMLA GLASSES" <${process.env.SMTP_USER}>`,
-    to: process.env.OWNER_EMAIL,
+    to: mailStatus().ownerEmail,
     subject: `New order — €${euros} from ${pi.receipt_email || "unknown"}`,
     html: `
       <div style="font-family:monospace;background:#080809;color:#f0f0f2;padding:32px;max-width:520px">
         <h2 style="color:#d4fc00;letter-spacing:.1em;margin:0 0 24px">NEW ORDER</h2>
         <p><b>Payment ID:</b> ${pi.id}</p>
-        <p><b>Customer:</b> ${pi.receipt_email || "—"}</p>
+        <p><b>Customer:</b> ${esc(pi.receipt_email || "—")}</p>
         <p><b>Total:</b> €${euros}</p>
         <hr style="border-color:rgba(255,255,255,.1);margin:20px 0">
-        ${items.map(i => `<p>${i.name} × ${i.qty}</p>`).join("")}
+        ${items.map(i => `<p>${esc(i.name)} × ${esc(i.qty)}</p>`).join("")}
         <hr style="border-color:rgba(255,255,255,.1);margin:20px 0">
         <p><b>Ship to:</b></p>
         <p style="line-height:1.6">${lines.length ? lines.map(esc).join("<br>") : "— no address on this payment —"}</p>
-        <p><b>Postage:</b> ${pi.metadata?.shipping_method || "—"}</p>
+        <p><b>Postage:</b> ${esc(pi.metadata?.shipping_method || "—")}</p>
         <hr style="border-color:rgba(255,255,255,.1);margin:20px 0">
         <p style="color:#7a7a84;font-size:.8em">View in <a href="https://dashboard.stripe.com/payments/${pi.id}" style="color:#d4fc00">Stripe Dashboard</a></p>
       </div>`,
@@ -107,6 +97,9 @@ exports.handler = async (event) => {
     const pi    = stripeEvent.data.object;
     const euros = (pi.amount_received / 100).toFixed(2);
     const items = JSON.parse(pi.metadata?.items_json || "[]");
+
+    const { data: existingOrder } = await supabase.from("orders").select("id,email").eq("stripe_id", pi.id).maybeSingle();
+    if (existingOrder) return { statusCode: 200, body: JSON.stringify({ received: true }) };
 
     // Deduct inventory for each item
     for (const item of items) {
@@ -148,7 +141,13 @@ exports.handler = async (event) => {
     if (orderErr) console.error("Order save error:", orderErr.message);
     else console.log(`✅  Order saved  ${pi.id}  €${euros}`);
 
-    try { await notifyOwner(pi); } catch (e) { console.error("Email error:", e.message); }
+    // Keep notification failures separate so one recipient never prevents the other.
+    try { await notifyOwner(pi); } catch (e) { console.error("Owner notification error:", e.message); }
+    if (!orderErr) {
+      // Read back the saved email: an admin may already have corrected it.
+      const { data: saved } = await supabase.from("orders").select("*").eq("stripe_id", pi.id).single();
+      try { await confirmOrder(saved || order); } catch (e) { console.error("Customer confirmation error:", e.message); }
+    }
   }
 
   if (stripeEvent.type === "payment_intent.payment_failed") {

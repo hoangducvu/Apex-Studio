@@ -1205,6 +1205,8 @@
       <section class="tab-panel" id="tabOrders" role="tabpanel" hidden>
       <div class="section-header">
         <h2>Recent Orders</h2>
+        <button class="btn-cancel" type="button" onclick="checkOrderMail()">Email notification status</button>
+        <button class="btn-cancel" type="button" onclick="testOrderMail(this)">Send test notification</button>
       </div>
       <div class="table-wrap">
         <table id="ordersTable">
@@ -1925,6 +1927,48 @@
       }
     });
 
+    async function orderMailAction(body) {
+      return apiFetch("/api/admin/orders", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      });
+    }
+    async function saveOrderEmail(event, id) {
+      event.preventDefault();
+      const button = event.target.querySelector("button");
+      button.disabled = true;
+      try {
+        const result = await orderMailAction({ op: "update-email", id, email: event.target.elements.email.value });
+        event.target.elements.email.defaultValue = event.target.elements.email.value;
+        alert(result.message);
+      } catch (e) { alert(e.message); }
+      finally { button.disabled = false; }
+    }
+    async function resendOrderConfirmation(id, button) {
+      const form = button.parentElement.querySelector("form");
+      if (form.elements.email.value !== form.elements.email.defaultValue) {
+        alert("Save your email changes before resending the confirmation.");
+        return;
+      }
+      button.disabled = true;
+      try { alert((await orderMailAction({ op: "resend-confirmation", id })).message); }
+      catch (e) { alert(e.message); }
+      finally { button.disabled = false; }
+    }
+    async function checkOrderMail() {
+      try {
+        const status = await orderMailAction({ op: "mail-status" });
+        alert(status.configured
+          ? `Email settings are configured. Owner notifications go to ${status.ownerEmail}. Send a test to verify delivery.`
+          : `Email delivery needs setup. Add these environment variables in your hosting dashboard, then redeploy: ${status.missing.join(", ")}. SMTP settings come from your email provider; OWNER_EMAIL is your notification inbox.`);
+      } catch (e) { alert(e.message); }
+    }
+    async function testOrderMail(button) {
+      button.disabled = true;
+      try { alert((await orderMailAction({ op: "test-notification" })).message); }
+      catch (e) { alert(e.message); }
+      finally { button.disabled = false; }
+    }
+
     async function loadOrders() {
       const tbody = document.getElementById("ordersTbody");
       try {
@@ -1960,7 +2004,13 @@
         return `<tr>
           <td style="color:var(--muted);white-space:nowrap">${dateStr}</td>
           <td style="font-family:'Space Mono',monospace;font-size:0.8rem">APX-${shortId}</td>
-          <td class="truncate" title="${escHtml(o.email || "")}">${escHtml(o.email || "—")}</td>
+          <td>
+            <form onsubmit="saveOrderEmail(event, ${Number(o.id)})">
+              <input type="email" name="email" required maxlength="254" aria-label="Customer email" value="${escHtml(o.email || "")}" style="max-width:230px;padding:8px">
+              <button type="submit" class="btn-cancel">Save email</button>
+            </form>
+            <button type="button" class="btn-cancel" onclick="resendOrderConfirmation(${Number(o.id)}, this)">Resend confirmation</button>
+          </td>
           ${shipCell(o)}
           <td class="truncate" title="${escHtml(itemsDisplay)}" style="max-width:200px">${escHtml(itemsDisplay)}</td>
           <td style="font-family:'Space Mono',monospace;font-size:0.85rem;white-space:nowrap">€${Number(o.total || 0).toFixed(2)}</td>

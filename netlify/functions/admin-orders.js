@@ -1,5 +1,6 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { supabase, json, options, requireAdmin, missingColumn } = require("./_helpers");
+const { mailStatus, sendMail, confirmOrder } = require("./_mail");
 
 const SHIP_COLUMNS = [
   "ship_name", "ship_line1", "ship_line2", "ship_city",
@@ -52,6 +53,36 @@ exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return options();
   const authErr = requireAdmin(event);
   if (authErr) return authErr;
+  if (event.httpMethod === "POST") {
+    let body;
+    try { body = JSON.parse(event.body || "{}"); }
+    catch { return json(400, { error: "Invalid JSON" }); }
+    try {
+      if (body.op === "mail-status") return json(200, mailStatus());
+      if (body.op === "test-notification") {
+        if (!mailStatus().configured) return json(409, { error: `Configure these hosting environment variables, then redeploy: ${mailStatus().missing.join(", ")}` });
+        await sendMail({ to: mailStatus().ownerEmail, subject: "LUMLA GLASSES — Notification test", text: "Your order notification email settings are working." });
+        return json(200, { message: "Test notification accepted by the mail server. Check your inbox and spam folder." });
+      }
+      if (!["update-email", "resend-confirmation"].includes(body.op)) return json(400, { error: "Unknown action" });
+      if (!Number.isSafeInteger(body.id) || body.id < 1) return json(400, { error: "Invalid order ID" });
+      const { data: order, error } = await supabase.from("orders").select("*").eq("id", body.id).maybeSingle();
+      if (error) throw error;
+      if (!order) return json(404, { error: "Order not found" });
+      if (body.op === "update-email") {
+        const email = String(body.email || "").trim();
+        if (email.length > 254 || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email)) return json(400, { error: "Enter a valid email address" });
+        const { error: saveError } = await supabase.from("orders").update({ email }).eq("id", order.id);
+        if (saveError) throw saveError;
+        return json(200, { message: "Email saved. Use Resend confirmation to send it to the corrected address." });
+      }
+      await confirmOrder(order);
+      return json(200, { message: "Confirmation accepted by the mail server. Ask the customer to check their inbox and spam folder." });
+    } catch (error) {
+      console.error("Admin order action failed:", error.message);
+      return json(502, { error: error.message });
+    }
+  }
   if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });
 
   const { data, error } = await supabase
